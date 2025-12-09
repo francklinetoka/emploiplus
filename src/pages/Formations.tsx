@@ -1,222 +1,150 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+// src/pages/Formations.tsx
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
-import { 
-  Code, 
-  Palette, 
-  TrendingUp, 
-  Clock,
-  Users,
-  Star,
-  ArrowRight,
-  GraduationCap
-} from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { BookOpen, Clock, Users, Calendar, ArrowRight } from "lucide-react";
 
-// Mock data
-const mockFormations = [
-  {
-    id: 1,
-    title: "Développement Web Full Stack",
-    category: "Informatique",
-    level: "Intermédiaire",
-    duration: "12 semaines",
-    students: 245,
-    rating: 4.8,
-    description: "Apprenez à créer des applications web modernes avec React, Node.js et MongoDB.",
-    icon: Code
-  },
-  {
-    id: 2,
-    title: "Design UI/UX avec Figma",
-    category: "Design",
-    level: "Débutant",
-    duration: "8 semaines",
-    students: 189,
-    rating: 4.7,
-    description: "Maîtrisez les fondamentaux du design d'interface et d'expérience utilisateur.",
-    icon: Palette
-  },
-  {
-    id: 3,
-    title: "Marketing Digital",
-    category: "Commerce",
-    level: "Débutant",
-    duration: "10 semaines",
-    students: 321,
-    rating: 4.9,
-    description: "Stratégies marketing digitales, SEO, réseaux sociaux et analytics.",
-    icon: TrendingUp
-  },
-  {
-    id: 4,
-    title: "Python pour Data Science",
-    category: "Informatique",
-    level: "Intermédiaire",
-    duration: "14 semaines",
-    students: 167,
-    rating: 4.6,
-    description: "Analyse de données, Machine Learning et visualisation avec Python.",
-    icon: Code
-  },
-  {
-    id: 5,
-    title: "Adobe Creative Suite",
-    category: "Design",
-    level: "Débutant",
-    duration: "6 semaines",
-    students: 198,
-    rating: 4.5,
-    description: "Photoshop, Illustrator et InDesign pour créer des visuels professionnels.",
-    icon: Palette
+// ⚠️ NOUVELLE IMPORTATION : Importez votre composant de recherche
+import FormationSearch from "@/components/formations/FormationSearch";
+
+export default function Formations() {
+  const { data: formations = [], isLoading, isError } = useQuery({
+    queryKey: ["formations"],
+    queryFn: api.getFormations,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // --- RENDU DE CHARGEMENT ET ERREUR (inchangé) ---
+
+  if (isLoading) {
+    return (
+      <div className="container py-16">
+        <h1 className="text-5xl font-bold text-center mb-12">Nos Formations</h1>
+        {/* Vous pouvez ajouter un Skeleton pour la barre de recherche ici si vous le souhaitez */}
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i} className="overflow-hidden">
+              <Skeleton className="h-48 w-full" />
+              <CardHeader>
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-4 w-1/2 mt-2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6 mt-2" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
   }
-];
 
-const Formations = () => {
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  if (isError) {
+    return (
+      <div className="container py-32 text-center">
+        <BookOpen className="h-24 w-24 mx-auto text-gray-300 mb-6" />
+        <p className="text-2xl text-muted-foreground">
+          Impossible de charger les formations pour le moment.
+        </p>
+        <p className="text-muted-foreground mt-4">Veuillez réessayer plus tard.</p>
+      </div>
+    );
+  }
 
-  const filteredFormations = selectedCategory === "all" 
-    ? mockFormations 
-    : mockFormations.filter(f => f.category.toLowerCase() === selectedCategory);
-
+  // --- RENDU PRINCIPAL AVEC LA RECHERCHE ---
   return (
-    <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="py-12 bg-gradient-to-br from-primary/5 to-secondary/5">
-        <div className="container">
-          <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
-              Développez vos <span className="text-primary">compétences</span>
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Accédez à des formations de qualité pour booster votre carrière
-            </p>
-          </div>
-        </div>
-      </section>
+    <div className="container py-16 max-w-7xl mx-auto">
+      <div className="text-center mb-16">
+        <h1 className="text-5xl md:text-6xl font-bold mb-6">
+          Découvrez nos Formations Professionnelles
+        </h1>
+        <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          Boostez votre carrière avec des formations certifiantes adaptées au marché congolais
+        </p>
+      </div>
 
-      {/* Formations List */}
-      <section className="py-12 bg-background">
-        <div className="container">
-          <Tabs defaultValue="all" className="space-y-8">
-            <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4">
-              <TabsTrigger value="all" onClick={() => setSelectedCategory("all")}>
-                Toutes
-              </TabsTrigger>
-              <TabsTrigger value="informatique" onClick={() => setSelectedCategory("informatique")}>
-                Informatique
-              </TabsTrigger>
-              <TabsTrigger value="design" onClick={() => setSelectedCategory("design")}>
-                Design
-              </TabsTrigger>
-              <TabsTrigger value="commerce" onClick={() => setSelectedCategory("commerce")}>
-                Commerce
-              </TabsTrigger>
-            </TabsList>
+      {/* 🟢 INTÉGRATION DU COMPOSANT DE RECHERCHE 🟢 */}
+      <div className="mb-12">
+        <FormationSearch />
+      </div>
 
-            <TabsContent value={selectedCategory} className="space-y-6">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">{filteredFormations.length}</span> formations disponibles
-                </p>
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredFormations.map((formation) => {
-                  const Icon = formation.icon;
-                  return (
-                    <Card key={formation.id} className="p-6 space-y-4 hover:shadow-medium transition-shadow">
-                      <div className="flex items-start justify-between">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                          <Icon className="h-6 w-6 text-primary" />
-                        </div>
-                        <Badge variant="secondary">{formation.level}</Badge>
-                      </div>
-
-                      <div className="space-y-2">
-                        <h3 className="text-xl font-semibold hover:text-primary transition-colors">
-                          {formation.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {formation.description}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {formation.duration}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          {formation.students}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-secondary text-secondary" />
-                          {formation.rating}
-                        </div>
-                      </div>
-
-                      <Button variant="outline" className="w-full group">
-                        En savoir plus
-                        <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              {/* Login Prompt */}
-              <Card className="p-8 text-center border-2 border-dashed mt-8">
-                <div className="space-y-4 max-w-lg mx-auto">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-primary mx-auto">
-                    <GraduationCap className="h-8 w-8 text-primary-foreground" />
-                  </div>
-                  <p className="text-muted-foreground">
-                    Vous avez vu un aperçu de nos formations
-                  </p>
-                  <p className="font-medium text-lg">
-                    Inscrivez-vous pour accéder à l'ensemble du catalogue et commencer votre apprentissage
-                  </p>
-                  <div className="flex gap-3 justify-center">
-                    <Button asChild className="bg-gradient-primary">
-                      <Link to="/inscription">
-                        S'inscrire gratuitement
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button variant="outline" asChild>
-                      <Link to="/connexion">Se connecter</Link>
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-gradient-primary">
-        <div className="container text-center space-y-6">
-          <h2 className="text-3xl font-bold text-primary-foreground">
-            Prêt à développer vos compétences ?
-          </h2>
-          <p className="text-lg text-primary-foreground/90 max-w-2xl mx-auto">
-            Rejoignez des milliers d'apprenants et accédez à nos formations certifiantes.
+      {formations.length === 0 ? (
+        <div className="text-center py-32">
+          <BookOpen className="h-32 w-32 mx-auto text-gray-300 mb-8" />
+          <p className="text-3xl font-semibold text-muted-foreground">
+            Aucune formation disponible pour le moment
           </p>
-          <Button size="lg" asChild className="bg-secondary hover:bg-secondary/90">
-            <Link to="/inscription">
-              Commencer maintenant
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
+          <p className="text-lg text-muted-foreground mt-4">
+            Revenez bientôt, de nouvelles formations arrivent chaque semaine !
+          </p>
         </div>
-      </section>
+      ) : (
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+          {/* ... (Reste du code pour afficher les cartes de formation) ... */}
+          {formations.map((formation: any) => (
+            <Card
+              key={formation.id}
+              className="group overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-primary/20"
+            >
+              {formation.image_url ? (
+                <div className="relative overflow-hidden">
+                  <img
+                    src={formation.image_url}
+                    alt={formation.title}
+                    className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <Badge className="absolute bottom-4 left-4 text-lg px-4 py-2">
+                    {formation.level}
+                  </Badge>
+                </div>
+              ) : (
+                <div className="bg-gradient-to-br from-primary/20 to-primary/10 h-56 flex items-center justify-center">
+                  <BookOpen className="h-20 w-20 text-primary/50" />
+                </div>
+              )}
+
+              <CardHeader className="pb-4">
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-2xl line-clamp-2">
+                    {formation.title}
+                  </CardTitle>
+                </div>
+                <CardDescription className="text-lg font-medium text-primary">
+                  {formation.category}
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-6">
+                <p className="text-muted-foreground line-clamp-3">
+                  {formation.description || "Formation complète avec accompagnement personnalisé."}
+                </p>
+
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-muted-foreground" />
+                    <span>{formation.duration || "Durée non précisée"}</span>
+                  </div>
+                  {formation.price && (
+                    <div className="flex items-center gap-2 font-bold text-lg text-primary">
+                      <span>{formation.price} FCFA</span>
+                    </div>
+                  )}
+                </div>
+
+                <Button className="w-full group" size="lg">
+                  Voir les détails
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition" />
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
-};
-
-export default Formations;
+}
