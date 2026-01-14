@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
-import { Plus, BookOpen } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import FormationList from "@/components/admin/formations/FormationList";
 
@@ -20,7 +20,13 @@ export default function FormationsPage() {
 
       <div className="flex justify-between items-center mb-12">
 
-        <h1 className="text-5xl font-bold">Formations</h1>
+ <div>
+          <h1 className="text-5xl font-bold text-gray-900">Gestion des Formations</h1>
+          <p className="text-xl text-muted-foreground mt-3">
+            Ajoutez, modifiez ou publiez des offres de Formations en toute simplicité
+          </p>
+        </div>
+      
 
         <Button size="lg" onClick={() => setShowCreateForm(true)}>
 
@@ -38,25 +44,15 @@ export default function FormationsPage() {
 
           <div className="bg-white rounded-3xl p-10 max-w-4xl w-full max-h-screen overflow-y-auto shadow-2xl">
 
-            <h2 className="text-3xl font-bold mb-8 text-center">Créer une nouvelle formation</h2>
-
-            <CreateFormationForm onSuccess={() => setShowCreateForm(false)} />
-
-            <div className="text-center mt-6">
-
-              <Button variant="outline" size="lg" onClick={() => setShowCreateForm(false)}>
-
-                Fermer
-
-              </Button>
-
-            </div>
+            <FormationForm onSuccess={() => setShowCreateForm(false)} />
 
           </div>
 
         </div>
 
       )}
+
+      
 
       <FormationList />
 

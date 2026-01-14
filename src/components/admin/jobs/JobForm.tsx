@@ -6,10 +6,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { uploadFile } from '@/lib/upload';
 import { Upload, X, Briefcase } from "lucide-react";
+import { JobData } from "@/lib/api";
+
+interface Job extends Omit<JobData, "sector"> {
+  id: string;
+  published: boolean;
+  created_at: string;
+  image_url?: string;
+  sector: string;
+  application_url?: string;
+}
 
 interface JobFormProps {
-  job?: any;
+  job?: Job;
   onSuccess: () => void;
 }
 
@@ -18,10 +29,13 @@ export default function JobForm({ job, onSuccess }: JobFormProps) {
     title: "",
     company: "",
     location: "",
+    sector: "",
     type: "CDI",
     salary: "",
     description: "",
+    application_url: "",
     image: null as File | null,
+    deadline: '' as string | '',
   });
 
   const [preview, setPreview] = useState<string | null>(job?.image_url || null);
@@ -32,10 +46,13 @@ export default function JobForm({ job, onSuccess }: JobFormProps) {
         title: job.title || "",
         company: job.company || "",
         location: job.location || "",
+        sector: job.sector || "",
         type: job.type || "CDI",
         salary: job.salary || "",
         description: job.description || "",
-        image: null,
+        application_url: job.application_url || "",
+          image: null,
+          deadline: job.deadline ? String(job.deadline).split('T')[0] : '',
       });
       setPreview(job.image_url || null);
     }
@@ -52,14 +69,31 @@ export default function JobForm({ job, onSuccess }: JobFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("title", form.title);
-    formData.append("company", form.company);
-    formData.append("location", form.location);
-    formData.append("type", form.type);
-    formData.append("salary", form.salary);
-    formData.append("description", form.description);
-    if (form.image) formData.append("image", form.image);
+    const payload: Record<string, unknown> = {
+      title: form.title,
+      company: form.company,
+      location: form.location,
+      sector: form.sector,
+      type: form.type,
+      salary: form.salary,
+      description: form.description,
+      application_url: form.application_url,
+      deadline: form.deadline || null,
+    };
+
+    const adminToken = localStorage.getItem('adminToken');
+
+    // Upload image if provided
+    if (form.image) {
+      try {
+        const uploaded = await uploadFile(form.image, adminToken, 'jobs');
+        payload.image_url = uploaded;
+      } catch (err) {
+        console.error('Upload error:', err);
+        toast.error('Erreur lors du téléchargement de l\'image');
+        return;
+      }
+    }
 
     try {
       const url = job ? `/api/jobs/${job.id}` : "/api/jobs";
@@ -67,7 +101,8 @@ export default function JobForm({ job, onSuccess }: JobFormProps) {
 
       const res = await fetch(url, {
         method,
-        body: formData,
+        headers: { "Content-Type": "application/json", ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}) },
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -170,6 +205,24 @@ export default function JobForm({ job, onSuccess }: JobFormProps) {
             </div>
 
             <div className="space-y-2">
+              <Label>Secteur</Label>
+              <Input
+                value={form.sector}
+                onChange={(e) => setForm({ ...form, sector: e.target.value })}
+                placeholder="ex: Informatique, Marketing, Finance..."
+              />
+            </div>
+
+              <div className="space-y-2">
+                <Label>Date limite de candidature</Label>
+                <Input
+                  type="date"
+                  value={form.deadline}
+                  onChange={(e) => setForm({ ...form, deadline: e.target.value })}
+                />
+              </div>
+
+            <div className="space-y-2">
               <Label>Type de contrat</Label>
               <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -190,6 +243,16 @@ export default function JobForm({ job, onSuccess }: JobFormProps) {
                 value={form.salary}
                onChange={(e) => setForm({ ...form, salary: e.target.value })}
                 placeholder="ex: 500 000 - 800 000 FCFA"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>URL de candidature (facultatif)</Label>
+              <Input
+                type="url"
+                value={form.application_url}
+                onChange={(e) => setForm({ ...form, application_url: e.target.value })}
+                placeholder="https://example.com/apply"
               />
             </div>
           </div>

@@ -3,12 +3,26 @@ import { useState, useEffect } from "react";
 import FormationCard from "./FormationCard";
 import FormationForm from "./FormationForm";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, BookOpen } from "lucide-react";
+import ConfirmButton from '@/components/ConfirmButton';
 import { toast } from "sonner";
 
+interface Formation {
+  id: string;
+  title: string;
+  category: string;
+  level: string;
+  duration: string;
+  price: string;
+  description: string;
+  image_url?: string;
+  published: boolean;
+  created_at: string;
+}
+
 export default function FormationList() {
-  const [formations, setFormations] = useState([]);
-  const [editing, setEditing] = useState(null);
+  const [formations, setFormations] = useState<Formation[]>([]);
+  const [editing, setEditing] = useState<Formation | null>(null);
   const [showForm, setShowForm] = useState(false);
 
   const fetchFormations = async () => {
@@ -30,7 +44,6 @@ export default function FormationList() {
   };
 
   const deleteFormation = async (id: string) => {
-    if (!confirm("Supprimer cette formation ?")) return;
     await fetch(`/api/formations/${id}`, { method: "DELETE" });
     toast.success("Formation supprimée");
     fetchFormations();
@@ -38,13 +51,7 @@ export default function FormationList() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-10">
-        <h1 className="text-4xl font-bold">Formations</h1>
-        <Button size="lg" onClick={() => setShowForm(true)}>
-          <Plus className="mr-2 h-5 w-5" />
-          Nouvelle formation
-        </Button>
-      </div>
+     
 
       {showForm || editing ? (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -68,7 +75,7 @@ export default function FormationList() {
             <p className="text-2xl">Aucune formation</p>
           </div>
         ) : (
-          formations.map((f: any) => (
+          formations.map((f: Formation) => (
             <FormationCard
               key={f.id}
               formation={f}

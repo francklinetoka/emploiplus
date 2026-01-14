@@ -2,8 +2,18 @@
 import { Card } from "@/components/ui/card";
 import { Shield, Mail, Calendar } from "lucide-react";
 
+type AdminRole = "super_admin" | "admin_offres" | "admin_users" | "admin";
+
+interface Admin {
+  id: string;
+  full_name: string;
+  email: string;
+  role: AdminRole;
+  created_at: string;
+}
+
 interface Props {
-  admin: any;
+  admin: Admin;
 }
 
 export default function AdminCard({ admin }: Props) {

@@ -8,8 +8,8 @@ import { toast } from "sonner";
 import { Shield, LogIn } from "lucide-react";
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState("super@emploi.cg");
-  const [password, setPassword] = useState("1414");
+  const [email, setEmail] = useState("email@email.com");
+  const [password, setPassword] = useState("mot de passe");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -54,7 +54,7 @@ export default function AdminLogin() {
         <form onSubmit={handleLogin} className="space-y-6">
           <Input
             type="email"
-            placeholder="super@emploi.cg"
+            placeholder="exemple@site.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -76,9 +76,7 @@ export default function AdminLogin() {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-muted-foreground mt-8">
-          Compte test : <strong>super@emploi.cg</strong> / <strong>1414</strong>
-        </p>
+        
       </Card>
     </div>
   );

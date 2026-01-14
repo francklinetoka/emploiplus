@@ -6,8 +6,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
+type AdminRole = "super_admin" | "admin_offres" | "admin_users" | "admin";
+
+interface Admin {
+  id: string;
+  full_name: string;
+  email: string;
+  role: AdminRole;
+}
+
 interface AdminFormProps {
-  admin?: any;
+  admin?: Admin;
   onSuccess: () => void;
 }
 
@@ -36,7 +45,7 @@ export default function AdminForm({ admin, onSuccess }: AdminFormProps) {
     const url = admin ? `/api/admins/${admin.id}` : "/api/admin/create";
     const method = admin ? "PUT" : "POST";
 
-    const body: any = {
+    const body: Record<string, string> = {
       full_name: form.full_name,
       email: form.email,
       role: form.role,
@@ -88,7 +97,7 @@ export default function AdminForm({ admin, onSuccess }: AdminFormProps) {
         />
       </div>
 
-      <div class="space-y-2">
+      <div className="space-y-2">
         <Label>Mot de passe {admin ? "(laisser vide pour ne pas changer)" : "*"}</Label>
         <Input
           type="password"
@@ -100,9 +109,9 @@ export default function AdminForm({ admin, onSuccess }: AdminFormProps) {
         />
       </div>
 
-      <div class="space-y-2">
+      <div className="space-y-2">
         <Label>Rôle</Label>
-        <Select value={form.role} onValueChange={(v: any) => setForm({ ...form, role: v })}>
+        <Select value={form.role} onValueChange={(v: AdminRole) => setForm({ ...form, role: v })}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
@@ -116,7 +125,7 @@ export default function AdminForm({ admin, onSuccess }: AdminFormProps) {
       </div>
 
       <div className="flex justify-end gap-4">
-        <Button type="button" variant="outline onClick={onSuccess}>
+        <Button type="button" variant="outline" onClick={onSuccess}>
           Annuler
         </Button>
         <Button type="submit">

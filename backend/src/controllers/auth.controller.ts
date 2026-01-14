@@ -1,8 +1,8 @@
 // backend/src/controllers/auth.controller.ts
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { pool } from "../config/database";
+import { pool } from "../config/database.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "emploi_connect_congo_secret_2025";
 

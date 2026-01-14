@@ -10,37 +10,11 @@ import {
   MessageCircle,
   ArrowRight
 } from "lucide-react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import aboutTeamImage from "@/assets/about-team.jpg";
+import FAQ from "@/components/FAQ";
+import aboutTeamImage from "@/assets/logo-about-team.png";
 
 const About = () => {
-  const faqs = [
-    {
-      question: "Comment créer un compte sur Emploi+ ?",
-      answer: "Cliquez sur 'Inscription' dans le menu, choisissez votre type de compte (Candidat ou Entreprise), remplissez le formulaire et validez votre email. C'est gratuit et rapide !"
-    },
-    {
-      question: "Est-ce que Emploi+ est gratuit ?",
-      answer: "Oui, l'inscription et l'accès aux fonctionnalités de base sont entièrement gratuits pour les candidats et les entreprises. Des services premium sont également disponibles."
-    },
-    {
-      question: "Comment postuler à une offre d'emploi ?",
-      answer: "Une fois connecté, parcourez les offres, cliquez sur celle qui vous intéresse et suivez les instructions pour soumettre votre candidature avec votre CV et lettre de motivation."
-    },
-    {
-      question: "Puis-je publier une offre d'emploi ?",
-      answer: "Oui, si vous avez un compte Entreprise vérifié, vous pouvez publier des offres d'emploi directement depuis votre tableau de bord."
-    },
-    {
-      question: "Comment optimiser mon CV ?",
-      answer: "Utilisez notre outil de création de CV professionnel dans la section Services, ou faites appel à nos experts pour une assistance personnalisée."
-    }
-  ];
+  
 
   const testimonials = [
     {
@@ -65,22 +39,10 @@ const About = () => {
 
   return (
     <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="py-16 bg-gradient-to-br from-primary/5 to-secondary/5">
-        <div className="container">
-          <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
-              À propos d'<span className="text-primary">Emploi+</span>
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              La plateforme qui connecte les talents et les opportunités en République du Congo
-            </p>
-          </div>
-        </div>
-      </section>
+      
 
       {/* Notre Histoire */}
-      <section className="py-16 bg-background">
+      <section className="py-16 bg-gradient-to-br from-secondary/5 to-primary/5">
         <div className="container">
           <div className="grid gap-12 lg:grid-cols-2 items-center">
             <div className="space-y-6">
@@ -98,11 +60,11 @@ const About = () => {
               </div>
             </div>
             <div className="relative">
-              <div className="aspect-[4/3] overflow-hidden rounded-2xl shadow-strong">
+              <div className="aspect-[4/3] overflow-hidden rounded-2xl ">
                 <img
                   src={aboutTeamImage}
                   alt="Équipe Emploi+"
-                  className="h-full w-full object-cover"
+                  className="h-full object-cover"
                 />
               </div>
             </div>
@@ -146,7 +108,7 @@ const About = () => {
           </div>
         </div>
       </section>
-
+<hr />
       {/* Testimonials */}
       <section className="py-16 bg-background">
         <div className="container">
@@ -173,8 +135,8 @@ const About = () => {
           </div>
         </div>
       </section>
-
-      {/* FAQ */}
+<hr />
+      {/* FAQ dynamique */}
       <section className="py-16 bg-muted/30">
         <div className="container max-w-3xl">
           <div className="text-center space-y-4 mb-12">
@@ -182,18 +144,7 @@ const About = () => {
             <p className="text-muted-foreground">Trouvez rapidement les réponses à vos questions</p>
           </div>
 
-          <Accordion type="single" collapsible className="space-y-4">
-            {faqs.map((faq, index) => (
-              <AccordionItem key={index} value={`item-${index}`} className="border rounded-lg px-6 bg-background">
-                <AccordionTrigger className="text-left hover:no-underline">
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          <FAQ />
         </div>
       </section>
 

@@ -5,8 +5,13 @@ import path from "path";
 
 export default defineConfig({
   server: {
-    port: 3000,
+    port: 5173,
     open: true,
+    hmr: {
+      host: "localhost",
+      port: 5173,
+      protocol: "ws",
+    },
     proxy: {
       "/api": {
         target: "http://localhost:5000",

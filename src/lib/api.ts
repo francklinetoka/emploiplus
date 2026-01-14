@@ -1,6 +1,24 @@
-// src/lib/api.ts
+export interface JobData {
+  title: string;
+  company: string;
+  location: string;
+  type: string;
+  sector: string;
+  description: string;
+  salary: string;
+}
+
+export interface FormationData {
+  title: string;
+  category: string;
+  level: string;
+  duration: string;
+  description: string;
+  price: string;
+}
 
 const API_URL = "http://localhost:5000/api";
+import { authHeaders } from '@/lib/headers';
 
 export const api = {
 
@@ -20,9 +38,12 @@ export const api = {
 
   // Jobs
 
-  getJobs: () => fetch(`${API_URL}/jobs`).then(res => res.json()),
+  getJobs: (params?: Record<string, string | number>) => {
+    const qs = params ? `?${new URLSearchParams(Object.entries(params).reduce((acc, [k, v]) => { if (v !== undefined && v !== null) acc[k] = String(v); return acc; }, {} as Record<string,string>))}` : '';
+    return fetch(`${API_URL}/jobs${qs}`).then(res => res.json());
+  },
 
-  createJob: (job: any) =>
+  createJob: (job: JobData) =>
 
     fetch(`${API_URL}/jobs`, {
 
@@ -34,7 +55,7 @@ export const api = {
 
     }).then(res => res.json()),
 
-  updateJob: (id: string, job: any) =>
+  updateJob: (id: string, job: JobData) =>
 
     fetch(`${API_URL}/jobs/${id}`, {
 
@@ -52,7 +73,7 @@ export const api = {
 
       method: "PATCH",
 
-      headers: "application/json",
+      headers: { "Content-Type": "application/json" },
 
       body: JSON.stringify({ published }),
 
@@ -64,7 +85,7 @@ export const api = {
 
   getFormations: () => fetch(`${API_URL}/formations`).then(res => res.json()),
 
-  createFormation: (formation: any) =>
+  createFormation: (formation: FormationData) =>
 
     fetch(`${API_URL}/formations`, {
 
@@ -79,6 +100,61 @@ export const api = {
   // Admins
 
   getAdmins: () => fetch(`${API_URL}/admins`).then(res => res.json()),
+
+  // Site notifications (admin)
+  createSiteNotification: (payload: { title: string; message?: string; target?: string; category?: string | null; image_url?: string | null; link?: string | null; }) => {
+    const adminToken = localStorage.getItem('adminToken');
+    const headers = adminToken ? authHeaders('application/json', 'adminToken') : authHeaders('application/json');
+    return fetch(`${API_URL}/admin/site-notifications`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    }).then(res => res.json());
+  },
+
+  // List site notifications (admin)
+  getSiteNotifications: () => {
+    const adminToken = localStorage.getItem('adminToken');
+    const headers = adminToken ? authHeaders(undefined, 'adminToken') : authHeaders();
+    return fetch(`${API_URL}/site-notifications`, { headers }).then(res => res.json());
+  },
+
+  // Delete a site notification (admin)
+  deleteSiteNotification: (id: string | number) => {
+    const adminToken = localStorage.getItem('adminToken');
+    const headers = adminToken ? authHeaders(undefined, 'adminToken') : authHeaders();
+    return fetch(`${API_URL}/admin/site-notifications/${id}`, { method: 'DELETE', headers }).then(res => res.json());
+  },
+
+  // Users
+
+  getUsers: () => fetch(`${API_URL}/users`).then(res => res.json()),
+
+  createUser: (user: { full_name: string; email: string; user_type: string }) =>
+
+    fetch(`${API_URL}/users`, {
+
+      method: "POST",
+
+      headers: { "Content-Type": "application/json" },
+
+      body: JSON.stringify(user),
+
+    }).then(res => res.json()),
+
+  updateUser: (id: string, user: { full_name?: string; email?: string; is_blocked?: boolean }) =>
+
+    fetch(`${API_URL}/users/${id}`, {
+
+      method: "PUT",
+
+      headers: { "Content-Type": "application/json" },
+
+      body: JSON.stringify(user),
+
+    }).then(res => res.json()),
+
+  deleteUser: (id: string) => fetch(`${API_URL}/users/${id}`, { method: "DELETE" }),
 
   // Stats
 

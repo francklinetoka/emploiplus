@@ -5,16 +5,16 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Send, ThumbsUp, Share2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { authHeaders } from '@/lib/headers';
 import { fr } from "date-fns/locale";
 
 const Newsfeed = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { role } = useUserRole(user?.id);
+  const { role } = useUserRole(user);
   const [publications, setPublications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [newPost, setNewPost] = useState("");
@@ -34,13 +34,9 @@ const Newsfeed = () => {
   const fetchPublications = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('publications')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const res = await fetch('/api/publications');
+      if (!res.ok) throw new Error('Erreur chargement publications');
+      const data = await res.json();
       setPublications(data || []);
     } catch (error: any) {
       toast.error("Erreur lors du chargement des publications");
@@ -55,15 +51,13 @@ const Newsfeed = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('publications')
-        .insert({
-          author_id: user.id,
-          content: newPost,
-          visibility: 'public'
-        });
-
-      if (error) throw error;
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/publications', {
+        method: 'POST',
+        headers: authHeaders('application/json'),
+        body: JSON.stringify({ content: newPost, visibility: 'public' }),
+      });
+      if (!res.ok) throw new Error('Erreur création publication');
 
       toast.success("Publication créée avec succès");
       setNewPost("");

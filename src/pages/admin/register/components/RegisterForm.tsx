@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { authHeaders } from '@/lib/headers';
 
 type Props = {
   role: "super_admin" | "admin_offres" | "admin_users" | "admin";
@@ -50,10 +51,7 @@ export default function RegisterForm({ role, title, color }: Props) {
 
         const res = await fetch("/api/admin/create", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: authHeaders('application/json', 'adminToken'),
           body: JSON.stringify({ ...form, role }),
         });
 

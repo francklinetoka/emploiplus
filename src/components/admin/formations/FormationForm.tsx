@@ -6,10 +6,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { uploadFile } from '@/lib/upload';
 import { Upload, X } from "lucide-react";
 
 interface FormationFormProps {
-  formation?: any;
+  formation?: {
+    id: string;
+    title: string;
+    category: string;
+    level: string;
+    duration: string;
+    price: string;
+    description: string;
+    image_url?: string;
+  };
   onSuccess: () => void;
 }
 
@@ -52,14 +62,28 @@ export default function FormationForm({ formation, onSuccess }: FormationFormPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("title", form.title);
-    formData.append("category", form.category);
-    formData.append("level", form.level);
-    formData.append("duration", form.duration);
-    formData.append("price", form.price);
-    formData.append("description", form.description);
-    if (form.image) formData.append("image", form.image);
+    const payload: Record<string, unknown> = {
+      title: form.title,
+      category: form.category,
+      level: form.level,
+      duration: form.duration,
+      price: form.price,
+      description: form.description,
+    };
+
+    const adminToken = localStorage.getItem('adminToken');
+
+    // If an image file was provided, upload it first
+    if (form.image) {
+      try {
+        const uploadedUrl = await uploadFile(form.image, adminToken, 'formations');
+        payload.image_url = uploadedUrl;
+      } catch (err) {
+        console.error('Image upload failed', err);
+        toast.error('Échec du téléchargement de l\'image');
+        return;
+      }
+    }
 
     try {
       const url = formation ? `/api/formations/${formation.id}` : "/api/formations";
@@ -67,7 +91,8 @@ export default function FormationForm({ formation, onSuccess }: FormationFormPro
 
       const res = await fetch(url, {
         method,
-        body: formData,
+        headers: { "Content-Type": "application/json", ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}) },
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -151,7 +176,6 @@ export default function FormationForm({ formation, onSuccess }: FormationFormPro
               <Input
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
-                required
                 required
                 placeholder="ex: Informatique, Marketing..."
               />

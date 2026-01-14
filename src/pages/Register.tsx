@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { COUNTRIES, CONGO_CITIES } from '@/lib/options';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -30,9 +31,13 @@ const Register = () => {
     lastName: "",
     email: "",
     country: "",
+    city: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   });
+  // use centralized lists from src/lib/options.ts
+  // CONGO_CITIES imported above
 
   // Entreprise form state
   const [entrepriseForm, setEntrepriseForm] = useState({
@@ -46,7 +51,10 @@ const Register = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      // respect optional redirect param after registration
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('redirect');
+      navigate(redirect || '/');
     }
   }, [user, navigate]);
 
@@ -63,22 +71,30 @@ const Register = () => {
       return;
     }
 
+    // Only allow registrations from République du Congo
+    if (candidatForm.country !== 'congo') {
+      toast.error("Seuls les candidats de la République du Congo peuvent créer un compte");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
 
-    const metadata = {
-      account_type: "candidate",
-      first_name: candidatForm.firstName,
-      last_name: candidatForm.lastName,
-      country: candidatForm.country
+    const metadata: Record<string, unknown> = {
+      user_type: "candidate",
+      full_name: `${candidatForm.firstName} ${candidatForm.lastName}`.trim(),
+      country: candidatForm.country,
     };
+    if (candidatForm.phone) metadata.phone = candidatForm.phone;
+    if (candidatForm.city) metadata.city = candidatForm.city;
 
     const { error } = await signUp(candidatForm.email, candidatForm.password, metadata);
 
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Inscription réussie ! Vous pouvez maintenant vous connecter.");
-      navigate('/connexion');
+      toast.success("Inscription réussie ! Vous êtes connecté.");
+      navigate('/compte');
     }
     
     setLoading(false);
@@ -100,10 +116,11 @@ const Register = () => {
     setLoading(true);
 
     const metadata = {
-      account_type: "company",
+      user_type: "company",
+      full_name: entrepriseForm.representative || entrepriseForm.companyName,
       company_name: entrepriseForm.companyName,
-      representative_name: entrepriseForm.representative,
-      address: entrepriseForm.address
+      company_address: entrepriseForm.address
+      ,country: 'congo'
     };
 
     const { error } = await signUp(entrepriseForm.email, entrepriseForm.password, metadata);
@@ -111,8 +128,8 @@ const Register = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Inscription réussie ! Vous pouvez maintenant vous connecter.");
-      navigate('/connexion');
+      toast.success("Inscription réussie ! Vous êtes connecté.");
+      navigate('/compte');
     }
     
     setLoading(false);
@@ -202,13 +219,49 @@ const Register = () => {
                       <SelectValue placeholder="Sélectionnez votre pays" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="congo">République du Congo</SelectItem>
-                      <SelectItem value="rdc">République Démocratique du Congo</SelectItem>
-                      <SelectItem value="gabon">Gabon</SelectItem>
-                      <SelectItem value="cameroun">Cameroun</SelectItem>
+                      <SelectItem value="congo">🇨🇬 République du Congo</SelectItem>
+                      <SelectItem value="rdc">🇨🇩 République Démocratique du Congo</SelectItem>
+                      <SelectItem value="gabon">🇬🇦 Gabon</SelectItem>
+                      <SelectItem value="cameroun">🇨🇲 Cameroun</SelectItem>
+                      <SelectItem value="centrafrique">🇨🇫 Centrafrique</SelectItem>
+                      <SelectItem value="tchad">🇹🇩 Tchad</SelectItem>
+                      <SelectItem value="sao_tome">🇸🇹 Sao Tomé-et-Principe</SelectItem>
+                      <SelectItem value="guinee_equatoriale">🇬🇶 Guinée équatoriale</SelectItem>
                       <SelectItem value="autre">Autre</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+
+              {/* City - shown for Congo */}
+              {candidatForm.country === 'congo' && (
+                <div className="space-y-2">
+                  <Label htmlFor="city">Ville *</Label>
+                  <Select value={candidatForm.city} onValueChange={(value) => setCandidatForm({ ...candidatForm, city: value })}>
+                    <SelectTrigger className="pl-3">
+                      <SelectValue placeholder="Sélectionnez votre ville" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CONGO_CITIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Phone number - auto prefix for Congo */}
+              <div className="space-y-2">
+                <Label htmlFor="phone">Téléphone *</Label>
+                <div className="relative">
+                  <Input
+                    id="phone"
+                    placeholder={candidatForm.country === 'congo' ? "+242 6xxxxxxxx" : "+242 ..."}
+                    className="pl-3"
+                    value={candidatForm.phone}
+                    onChange={(e) => setCandidatForm({ ...candidatForm, phone: e.target.value })}
+                    required
+                  />
                 </div>
               </div>
 
@@ -407,6 +460,16 @@ const Register = () => {
           <Button variant="link" asChild className="p-0 h-auto text-primary">
             <Link to="/connexion">Se connecter</Link>
           </Button>
+        </div>
+        {/* Footer links */}
+        <div className="text-center text-sm mt-4">
+          <div className="font-semibold">Emploi+© 2026</div>
+          <div className="text-xs">
+            <a href="/conditions" className="block hover:underline">Conditions générales d’utilisation de Emploi+</a>
+            <a href="/privacy" className="block hover:underline">Politique de confidentialité</a>
+            <a href="/cookies" className="block hover:underline">Politique relative aux cookies</a>
+            <a href="/copyright" className="block hover:underline">Politique de copyright</a>
+          </div>
         </div>
       </Card>
     </div>

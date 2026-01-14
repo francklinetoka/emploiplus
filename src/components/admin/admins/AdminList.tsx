@@ -1,4 +1,12 @@
-// src/components/admin/admins/AdminList.tsx
+type AdminRole = "super_admin" | "admin_offres" | "admin_users" | "admin";
+
+interface Admin {
+  id: string;
+  full_name: string;
+  email: string;
+  role: AdminRole;
+  created_at: string;
+}
 import { useState, useEffect } from "react";
 import AdminCard from "./AdminCard";
 
@@ -20,7 +28,7 @@ export default function AdminList() {
             Aucun administrateur
           </p>
         ) : (
-          admins.map((admin: any) => (
+          admins.map((admin: Admin) => (
             <AdminCard key={admin.id} admin={admin} />
           ))
         )}

@@ -2,9 +2,18 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Eye, EyeOff, Edit, Trash2 } from "lucide-react";
+import ConfirmButton from '@/components/ConfirmButton';
+import { FormationData } from "@/lib/api";
+
+interface Formation extends FormationData {
+  id: string;
+  published: boolean;
+  created_at: string;
+  image_url?: string;
+}
 
 interface Props {
-  formation: any;
+  formation: Formation;
   onEdit: () => void;
   onToggle: () => void;
   onDelete: () => void;
@@ -40,7 +49,9 @@ export default function FormationCard({ formation, onEdit, onToggle, onDelete }:
           <Button size="sm" variant={formation.published ? "default" : "outline"} onClick={onToggle}>
             {formation.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>
-          <Button size="sm" variant="destructive" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button>
+          <ConfirmButton title="Supprimer cette formation ?" description="Cette action est irréversible." confirmLabel="Supprimer" onConfirm={onDelete}>
+            <Button size="sm" variant="destructive"><Trash2 className="h-4 w-4" /></Button>
+          </ConfirmButton>
         </div>
       </div>
     </Card>

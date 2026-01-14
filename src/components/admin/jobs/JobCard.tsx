@@ -3,8 +3,16 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Briefcase, Eye, EyeOff, Edit, Trash2 } from "lucide-react";
 
+import { JobData } from "@/lib/api";
+
+interface Job extends JobData {
+  id: string;
+  published: boolean;
+  created_at: string;
+}
+
 interface JobCardProps {
-  job: any;
+  job: Job;
   onEdit: () => void;
   onTogglePublish: () => void;
   onDelete: () => void;

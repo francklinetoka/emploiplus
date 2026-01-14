@@ -1,14 +1,3 @@
-super@emploi.cg / 141
-
-
-
-admin@emploiplus.cg 
-
-
-
-Les routes register
-
-
 
 admin/register/super-admin
 
@@ -16,4 +5,30 @@ admin/register/super-admin
 
 admin/register/user-admin
 
-4
+Compte Candidat :
+francklin@emploiplus.cg
+francklin@emploiplus.cg
+
+
+admin@emploi.cg / admin123
+
+
+
+
+
+🔐 Comptes de test
+Admin :
+
+Email : admin@emploi.cg | Mot de passe : admin@emploi.cg | Rôle : super_admin
+
+Email : contenu@emploi.cg | Mot de passe : contenu@emploi.cg | Rôle : admin_content
+
+
+
+Utilisateurs :
+dargyetoka@gmail.com (candidat)
+
+Email : dargyetoka@gmail.com | Mot de passe : dargyetoka@gmail.com | Type : candidate
+
+Email : goodmoney@gmail.com
+passe : goodmoney@gmail.com | Type : company

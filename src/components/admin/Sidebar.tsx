@@ -1,5 +1,5 @@
 // src/components/admin/Sidebar.tsx
-import { LogOut, Shield, Users, Briefcase, BookOpen, LayoutDashboard, UserPlus } from "lucide-react";
+import { LogOut, Shield, Users, Briefcase, BookOpen, LayoutDashboard, UserPlus, FileCheck, ShoppingBag, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -21,7 +21,10 @@ export function Sidebar() {
   const menuItems = [
     { label: "Tableau de bord", icon: LayoutDashboard, path: "/admin" },
     ...(role === "super_admin" ? [
-      { label: "Créer Admin", icon: UserPlus, path: "/admin/register" },
+      { label: "Notifications", icon: Bell, path: "/admin/notifications" },
+    ] : []),
+    ...(role === "super_admin" ? [
+      
       { label: "Administrateurs", icon: Shield, path: "/admin/admins" },
     ] : []),
     ...(role === "super_admin" || role === "admin_offres" ? [
@@ -31,13 +34,30 @@ export function Sidebar() {
     ...(role === "super_admin" || role === "admin_users" ? [
       { label: "Utilisateurs", icon: Users, path: "/admin/users" },
     ] : []),
+    // FAQ management available to admin roles
+    ...(role === "super_admin" || role === "admin_users" || role === "admin" ? [
+      { label: "FAQ", icon: FileCheck, path: "/admin/faqs" },
+    ] : []),
+    // Catalogs management available to all admins
+    ...(role === "super_admin" || role === "admin_offres" ? [
+      { label: "Catalogue Services", icon: ShoppingBag, path: "/admin/catalogs" },
+    ] : []),
   ];
 
   const currentPath = location.pathname;
 
+  const navigateTo = (path: string) => {
+    if (path.includes('?')) {
+      const [p, q] = path.split('?');
+      navigate(`${p}?${q}`);
+    } else {
+      navigate(path);
+    }
+  };
+
   return (
-    <aside className="fixed left-0 top-0 z-50 w-72 h-screen bg-gradient-to-b from-primary to-primary/95 text-white shadow-2xl">
-      <div className="p-8">
+    <aside className="fixed left-0 top-0 z-50 w-72 h-screen bg-gradient-to-b from-primary to-primary/95 text-white shadow-2xl flex flex-col">
+      <div className="p-8 flex-shrink-0">
         <div className="flex items-center gap-4 mb-12">
           <Shield className="h-12 w-12" />
           <div>
@@ -45,30 +65,37 @@ export function Sidebar() {
             <p className="text-sm opacity-90 capitalize">{role.replace("_", " ")}</p>
           </div>
         </div>
-
-        <nav className="space-y-3 mt-10">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentPath === item.path;
-
-            return (
-              <Button
-                key={item.path}
-                variant={isActive ? "secondary" : "ghost"}
-                className={`w-full justify-start h-14 text-lg rounded-xl ${
-                  isActive ? "bg-white/25 shadow-lg" : "hover:bg-white/15"
-                }`}
-                onClick={() => navigate(item.path)}
-              >
-                <Icon className="mr-4 h-6 w-6" />
-                {item.label}
-              </Button>
-            );
-          })}
-        </nav>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-8 border-t border-white/20">
+      <nav className="space-y-3 mt-10 px-8 flex-1 overflow-y-auto pb-4">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          // determine active by comparing pathname and search if present
+          let isActive = false;
+          if (item.path.includes('?')) {
+            const [p, q] = item.path.split('?');
+            isActive = currentPath === p && location.search === `?${q}`;
+          } else {
+            isActive = currentPath === item.path;
+          }
+
+          return (
+            <Button
+              key={item.path}
+              variant={isActive ? "secondary" : "ghost"}
+              className={`w-full justify-start h-14 text-lg rounded-xl ${
+                isActive ? "bg-white/25 shadow-lg" : "hover:bg-white/15"
+              }`}
+              onClick={() => navigateTo(item.path)}
+            >
+              <Icon className="mr-4 h-6 w-6" />
+              {item.label}
+            </Button>
+          );
+        })}
+      </nav>
+
+      <div className="p-8 border-t border-white/20 flex-shrink-0">
         <Button variant="ghost" className="w-full h-14 text-lg hover:bg-white/20" onClick={logout}>
           <LogOut className="mr-4 h-6 w-6" />
           Déconnexion

@@ -1,4 +1,4 @@
-// src/pages/Login.tsx
+// src/pages/Login.tsx - ADMIN LOGIN
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -52,7 +52,7 @@ const Login = () => {
           <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 mx-auto">
             <Briefcase className="h-7 w-7 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold">Connexion à Emploi+</h1>
+          <h1 className="text-2xl font-bold">Connexion Admin</h1>
           <p className="text-sm text-muted-foreground">
             Accédez à votre espace administrateur
           </p>
@@ -99,13 +99,13 @@ const Login = () => {
                 checked={rememberMe}
                 onCheckedChange={(checked) => setRememberMe(checked as boolean)}
               />
-              <label
-                htmlFor="remember"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
+              <Label htmlFor="remember" className="font-normal cursor-pointer">
                 Se souvenir de moi
-              </label>
+              </Label>
             </div>
+            <Link to="/connexion" className="text-sm text-primary hover:underline">
+              Connexion utilisateur
+            </Link>
           </div>
 
           <Button
@@ -132,9 +132,7 @@ const Login = () => {
 
         {/* Admin Links */}
         <div className="text-center text-sm space-y-2">
-          <p className="text-muted-foreground">
-            Compte test : <strong>super@emploi.cg</strong> / <strong>1414</strong>
-          </p>
+         
           <Button variant="link" asChild className="p-0 h-auto text-primary">
             <Link to="/admin/register/super-admin">Créer un Super Admin</Link>
           </Button>
