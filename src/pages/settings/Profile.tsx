@@ -57,6 +57,13 @@ export default function ProfilePage() {
     }
   }, [user, authLoading, navigate]);
 
+  // Redirect companies to CompanyProfile page
+  useEffect(() => {
+    if (profileData && profileData.user_type === 'company') {
+      navigate('/parametres/profil-entreprise');
+    }
+  }, [profileData, navigate]);
+
   useEffect(() => {
     if (user) {
       fetchProfile();

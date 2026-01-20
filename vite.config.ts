@@ -6,14 +6,20 @@ import path from "path";
 export default defineConfig({
   server: {
     port: 5173,
+    host: "0.0.0.0",
     open: true,
     hmr: {
-      host: "localhost",
+      host: "192.168.0.14",
       port: 5173,
       protocol: "ws",
     },
     proxy: {
       "/api": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+        secure: false,
+      },
+      "/uploads": {
         target: "http://localhost:5000",
         changeOrigin: true,
         secure: false,

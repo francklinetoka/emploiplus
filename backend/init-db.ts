@@ -24,8 +24,22 @@ async function initDatabase() {
         diploma TEXT,
         experience_years INTEGER DEFAULT 0,
         skills JSONB DEFAULT '[]',
+        profile_image_url TEXT,
         is_verified BOOLEAN DEFAULT false,
         is_blocked BOOLEAN DEFAULT false,
+        linkedin TEXT,
+        facebook TEXT,
+        instagram TEXT,
+        twitter TEXT,
+        youtube TEXT,
+        company TEXT,
+        company_id INTEGER,
+        bio TEXT,
+        city TEXT,
+        birthdate DATE,
+        gender TEXT,
+        profile_views JSONB DEFAULT '{}',
+        profile_views_week INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       )
@@ -55,12 +69,17 @@ async function initDatabase() {
         id SERIAL PRIMARY KEY,
         title TEXT NOT NULL,
         company TEXT NOT NULL,
+        company_id INTEGER,
         location TEXT NOT NULL,
         sector TEXT,
         type TEXT NOT NULL,
         salary TEXT,
         description TEXT NOT NULL,
         image_url TEXT,
+        application_url TEXT,
+        application_via_emploi BOOLEAN DEFAULT false,
+        deadline TIMESTAMP,
+        is_company_owned BOOLEAN DEFAULT false,
         published BOOLEAN DEFAULT false,
         published_at TIMESTAMP NULL,
         created_at TIMESTAMP DEFAULT NOW()
@@ -124,16 +143,68 @@ async function initDatabase() {
     await pool.query(`
       CREATE TABLE publications (
         id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
         author_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
         content TEXT NOT NULL,
-        visibility TEXT DEFAULT 'public',
-        hashtags TEXT,
         image_url TEXT,
+        category TEXT DEFAULT 'annonce',
+        achievement BOOLEAN DEFAULT false,
+        hashtags TEXT[],
+        visibility TEXT DEFAULT 'public',
         is_active BOOLEAN DEFAULT true,
-        created_at TIMESTAMP DEFAULT NOW()
+        likes_count INTEGER DEFAULT 0,
+        comments_count INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
       )
     `);
     console.log("✅ Table publications créée\n");
+
+    console.log("📝 Création de la table publication_likes...");
+    await pool.query(`DROP TABLE IF EXISTS publication_likes CASCADE`);
+    await pool.query(`
+      CREATE TABLE publication_likes (
+        id SERIAL PRIMARY KEY,
+        publication_id INTEGER NOT NULL REFERENCES publications(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(publication_id, user_id)
+      )
+    `);
+    console.log("✅ Table publication_likes créée\n");
+
+    console.log("📝 Création de la table publication_comments...");
+    await pool.query(`DROP TABLE IF EXISTS publication_comments CASCADE`);
+    await pool.query(`
+      CREATE TABLE publication_comments (
+        id SERIAL PRIMARY KEY,
+        publication_id INTEGER NOT NULL REFERENCES publications(id) ON DELETE CASCADE,
+        author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log("✅ Table publication_comments créée\n");
+
+    console.log("📝 Création de la table documentation_posts...");
+    await pool.query(`DROP TABLE IF EXISTS documentation_posts CASCADE`);
+    await pool.query(`
+      CREATE TABLE documentation_posts (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        category TEXT NOT NULL DEFAULT 'Informations',
+        image_url TEXT,
+        external_link TEXT,
+        author_id INTEGER REFERENCES admins(id) ON DELETE SET NULL,
+        is_published BOOLEAN DEFAULT true,
+        published_at TIMESTAMP DEFAULT NOW(),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log("✅ Table documentation_posts créée\n");
 
     console.log("📝 Création de la table user_documents (CVs / Letters)...");
     await pool.query(`DROP TABLE IF EXISTS user_documents CASCADE`);
@@ -149,6 +220,49 @@ async function initDatabase() {
       )
     `);
     console.log("✅ Table user_documents créée\n");
+
+    console.log("📝 Création de la table job_applications...");
+    await pool.query(`DROP TABLE IF EXISTS job_applications CASCADE`);
+    await pool.query(`
+      CREATE TABLE job_applications (
+        id SERIAL PRIMARY KEY,
+        job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        applicant_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        company_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        cv_url TEXT,
+        cover_letter_url TEXT,
+        additional_docs JSONB DEFAULT '[]',
+        message TEXT,
+        status TEXT DEFAULT 'submitted',
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log("✅ Table job_applications créée\n");
+
+    console.log("📝 Création de la table spontaneous_applications...");
+    await pool.query(`DROP TABLE IF EXISTS spontaneous_applications CASCADE`);
+    await pool.query(`
+      CREATE TABLE spontaneous_applications (
+        id SERIAL PRIMARY KEY,
+        applicant_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        company_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        applicant_name VARCHAR(255) NOT NULL,
+        applicant_email VARCHAR(255) NOT NULL,
+        applicant_phone VARCHAR(20),
+        message TEXT NOT NULL,
+        type VARCHAR(50) DEFAULT 'manual',
+        position VARCHAR(255),
+        cv_url TEXT,
+        letter_url TEXT,
+        status TEXT DEFAULT 'submitted',
+        acknowledged BOOLEAN DEFAULT false,
+        acknowledged_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(applicant_id, company_id, DATE(created_at))
+      )
+    `);
+    console.log("✅ Table spontaneous_applications créée avec protection anti-spam\n");
 
     console.log("📝 Création de la table saved_jobs...");
     await pool.query(`DROP TABLE IF EXISTS saved_jobs CASCADE`);
@@ -179,6 +293,27 @@ async function initDatabase() {
       )
     `);
     console.log("✅ Table service_catalogs créée\n");
+
+    console.log("📝 Création de la table notifications...");
+    await pool.query(`DROP TABLE IF EXISTS notifications CASCADE`);
+    await pool.query(`
+      CREATE TABLE notifications (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        from_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        from_user_name TEXT,
+        from_user_avatar TEXT,
+        title TEXT NOT NULL,
+        message TEXT,
+        notification_type TEXT DEFAULT 'general',
+        related_id INTEGER,
+        related_type TEXT,
+        read BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log("✅ Table notifications créée\n");
 
     console.log("📝 Création de la table site_settings...");
     await pool.query(`DROP TABLE IF EXISTS site_settings CASCADE`);

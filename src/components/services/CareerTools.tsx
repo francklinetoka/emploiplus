@@ -1,48 +1,66 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { FileText, CheckCircle2 } from "lucide-react";
+import { Mic, BarChart3, ArrowRight, Zap } from "lucide-react";
 
 export default function CareerTools() {
+  const tools = [
+    {
+      id: 'interview',
+      icon: Mic,
+      title: 'Simulateur d\'entretien',
+      description: 'Pratiquez vos entretiens avec un simulateur interactif et recevez des retours personnalisés.',
+      cta: 'Démarrer la simulation',
+      href: '/simulateur-entretien'
+    },
+    {
+      id: 'skills',
+      icon: BarChart3,
+      title: 'Tests de compétence',
+      description: 'Évaluez vos compétences avec nos tests spécialisés et obtenez des certifications reconnues.',
+      cta: 'Commencer un test',
+      href: '/test-competence'
+    }
+  ];
+
   return (
-    <section id="Entretiens-preparation" className="py-12">
-      <div className="container">
-        
-        <div className="text-center mb-8">
+    <section id="outils-carriere" className="py-8">
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 mb-4">
+            <Zap className="h-5 w-5 text-primary" />
+            <span className="text-sm font-semibold text-primary uppercase tracking-wide">Outils carrière</span>
+          </div>
           <h2 className="text-3xl font-bold">Préparez-vous aux entretiens</h2>
-          <p className="text-muted-foreground"> Ouvrez l'outil — les comptes connectés bénéficient d'options supplémentaires.</p>
+          <p className="text-muted-foreground text-lg">Entraînez-vous et évaluez vos compétences avec nos outils interactifs</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 items-stretch">
-          <Card className="p-6 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                  <FileText className="h-5 w-5 text-primary" />
+        <div className="grid gap-5 md:grid-cols-2">
+          {tools.map((tool) => {
+            const Icon = tool.icon;
+            return (
+              <Card key={tool.id} className="p-6 transition-all hover:shadow-lg border border-gray-200">
+                <div className="relative z-10">
+                  <div className="inline-flex p-3 rounded-lg bg-gray-100 text-gray-700 mb-4">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">{tool.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    {tool.description}
+                  </p>
+                  <Button 
+                    asChild 
+                    className="bg-primary text-white hover:bg-primary/90 w-full"
+                  >
+                    <Link to={tool.href} className="flex items-center justify-center gap-2">
+                      {tool.cta}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
                 </div>
-                <h3 className="text-lg font-semibold">Simulateur d'entretien</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">Pratiquez pour vos entretiens d'embauche avec un simulateur interactif.</p>
-            </div>
-            <div className="mt-4">
-              <Button asChild className="w-full bg-primary text-white"><Link to="/simulateur-entretien">Démarrer la simulation</Link></Button>
-            </div>
-          </Card>
-
-          <Card className="p-6 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary/10">
-                  <CheckCircle2 className="h-5 w-5 text-secondary" />
-                </div>
-                <h3 className="text-lg font-semibold">Tests de compétence</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">Testez vos compétences avec des questions spécialisées dans différents domaines.</p>
-            </div>
-            <div className="mt-4">
-              <Button asChild className="w-full"><Link to="/test-competence">Commencer un test</Link></Button>
-            </div>
-          </Card>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </section>

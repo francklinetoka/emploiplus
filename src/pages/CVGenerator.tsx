@@ -9,6 +9,7 @@ import { authHeaders } from '@/lib/headers';
 import { uploadFile } from '@/lib/upload';
 import { Plus, Trash2, Download, Eye } from "lucide-react";
 import html2pdf from "html2pdf.js";
+import { CVTemplateExecutive } from "@/components/cv-templates/CVTemplateExecutive";
 
 // Helper: export HTML content as a Word (.doc) file
 const exportHtmlAsWord = (filename: string, element: HTMLElement) => {
@@ -47,16 +48,19 @@ interface CVData {
     year: string;
   }>;
   skills: string[];
-  template: "white" | "blue" | "orange" | "red" | "yellow";
+  template: "white" | "blue" | "orange" | "red" | "yellow" | "executive";
   language?: "fr" | "en";
+  job_title?: string;
+  languages?: Array<{ name: string; level: string }>;
 }
 
 const DEMO_TEMPLATES = [
-  { id: "white", name: "Blanc", color: "from-gray-50 to-white" },
-  { id: "blue", name: "Bleu", color: "from-blue-500 to-blue-700" },
-  { id: "orange", name: "Orange", color: "from-orange-500 to-orange-700" },
-  { id: "red", name: "Rouge", color: "from-red-500 to-red-700" },
-  { id: "yellow", name: "Jaune", color: "from-yellow-500 to-yellow-600" },
+  { id: "white", name: "Classique Blanc", color: "from-gray-50 to-white", icon: "📄", desc: "Simplicité et professionnel" },
+  { id: "blue", name: "Bleu Professionnel", color: "from-blue-500 to-blue-700", icon: "💼", desc: "Modern et confiant" },
+  { id: "orange", name: "Orange Dynamique", color: "from-orange-500 to-orange-700", icon: "⚡", desc: "Énergique et créatif" },
+  { id: "red", name: "Rouge Impactant", color: "from-red-500 to-red-700", icon: "❤️", desc: "Affirmer votre passion" },
+  { id: "yellow", name: "Jaune Optimiste", color: "from-yellow-500 to-yellow-600", icon: "✨", desc: "Chaleureux et optimiste" },
+  { id: "executive", name: "Cadre Professionnel", color: "from-gray-700 to-gray-900", icon: "🏢", desc: "Design haute performance pour cadres" },
 ];
 
 export default function CVGenerator() {
@@ -78,7 +82,7 @@ export default function CVGenerator() {
     localStorage.setItem("userCVs", JSON.stringify(cvs));
   }, [cvs]);
 
-  const createNewCV = (template: "white" | "blue" | "orange" | "red" | "yellow" = "white") => {
+  const createNewCV = (template: "white" | "blue" | "orange" | "red" | "yellow" | "executive" = "white") => {
     const maxCVs = isLoggedIn ? Infinity : 2;
     if (cvs.length >= maxCVs) {
       toast.error(`Limite atteinte: ${maxCVs} CV maximum`);
@@ -97,6 +101,8 @@ export default function CVGenerator() {
       skills: [],
       template,
       language: "fr",
+      job_title: "",
+      languages: [],
     };
 
     setCVs([...cvs, newCV]);
@@ -252,7 +258,40 @@ export default function CVGenerator() {
     }
   };
 
-  const CVPreview = ({ cv }: { cv: CVData }) => (
+  const CVPreview = ({ cv }: { cv: CVData }) => {
+    // If template is executive, use CVTemplateExecutive
+    if (cv.template === "executive") {
+      return (
+        <CVTemplateExecutive 
+          data={{
+            full_name: cv.fullName || "Votre Nom",
+            job_title: cv.job_title || "Votre Poste",
+            email: cv.email || "",
+            phone: cv.phone || "",
+            location: cv.location || "",
+            summary: cv.summary,
+            experiences: cv.experiences.map(exp => ({
+              company: exp.company,
+              position: exp.position,
+              startDate: exp.startDate,
+              endDate: exp.endDate,
+              description: exp.description,
+            })),
+            education: cv.education.map(edu => ({
+              school: edu.school,
+              degree: edu.degree,
+              field: edu.field,
+              year: edu.year,
+            })),
+            skills: cv.skills,
+            languages: cv.languages || [],
+          }}
+        />
+      );
+    }
+
+    // Otherwise show inline preview
+    return (
     <div
       id="cv-preview"
       className={`bg-white p-6 sm:p-12 max-w-4xl mx-auto ${
@@ -362,7 +401,8 @@ export default function CVGenerator() {
         );
       })()}
     </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">

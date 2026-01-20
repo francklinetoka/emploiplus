@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
 import AuthUserFooter from "./AuthUserFooter";
+import { MessagingWidget } from "./messaging/MessagingWidget";
 import { useAuth } from "@/hooks/useAuth";
 
 const Layout = () => {
@@ -14,6 +15,7 @@ const Layout = () => {
         <Outlet />
       </main>
       {user ? <AuthUserFooter /> : <Footer />}
+      {user && <MessagingWidget />}
     </div>
   );
 };

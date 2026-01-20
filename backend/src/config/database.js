@@ -1,7 +1,7 @@
 import pg from "pg";
 const { Pool } = pg;
 const connectionString = process.env.DATABASE_URL || null;
-export let pool = connectionString
+export const pool = connectionString
     ? new Pool({ connectionString, connectionTimeoutMillis: 2000 })
     : new Pool({
         host: process.env.DB_HOST || "127.0.0.1",
@@ -30,7 +30,10 @@ async function tryConnect(retries = 5, delayMs = 2000) {
     }
     console.error("Unable to connect to PostgreSQL after retries. Running in DB-unavailable mode.");
 }
-tryConnect().catch((err) => console.error("Unexpected DB connection error:", err));
+// Expose the connection attempt as a promise so callers can await DB readiness
+export const connectedPromise = tryConnect().catch((err) => {
+    console.error("Unexpected DB connection error:", err);
+});
 pool.on("error", (err) => console.error("Erreur DB:", err));
 // Wrap pool.query to gracefully handle DB-unavailable mode during development
 const _realQuery = pool.query.bind(pool);
@@ -40,4 +43,3 @@ pool.query = async (...args) => {
     }
     return _realQuery(...args);
 };
-//# sourceMappingURL=database.js.map

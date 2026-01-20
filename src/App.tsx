@@ -12,13 +12,14 @@ import Home from "./pages/Home";
 import Services from "./pages/Services";
 import Jobs from "./pages/Jobs";
 import Formations from "./pages/Formations";
+import FormationEnrollment from "./pages/FormationEnrollment";
 import About from "./pages/About";
 import Profile from "./pages/Profile";
+import UserProfile from "./pages/UserProfile";
 import Candidates from "./pages/Candidates";
 import Settings from "./pages/Settings";
 import SettingsLayout from "./pages/SettingsLayout";
 import SettingsDashboard from "./pages/settings/Dashboard";
-import SettingsProfile from "./pages/settings/Profile";
 import SettingsSecurity from "./pages/settings/Security";
 import SettingsInformations from "./pages/settings/Informations";
 import SettingsRecommendations from "./pages/settings/Recommendations";
@@ -26,23 +27,34 @@ import SettingsDelete from "./pages/settings/DeleteAccount";
 import SettingsVerification from "./pages/settings/Verification";
 import CandidateProfile from "./pages/settings/CandidateProfile";
 import CandidateInformation from "./pages/settings/CandidateInformation";
+import CandidatePrivacy from "./pages/settings/CandidatePrivacy";
 import CompanyProfile from "./pages/settings/CompanyProfile";
+import CompanyPrivacy from "./pages/settings/CompanyPrivacy";
 import CompanyLocation from "./pages/settings/CompanyLocation";
 import Subscription from "./pages/settings/Subscription";
 import CompetenceTest from "./pages/CompetenceTest";
 import Recrutement from "./pages/Recrutement";
 import SearchResults from "./pages/SearchResults";
 import Annuaire from "./pages/Annuaire";
-import DocumentsPage from "./pages/Documents";
+import DocumentationPage from "./pages/Documentation";
 import CompanyPage from "./pages/Company";
+import CandidateDetailPage from "./pages/CandidateProfile";
+import SpontaneousApplication from "./pages/SpontaneousApplication";
 import ApplyJob from "./pages/ApplyJob";
 import InterviewSimulator from "./pages/InterviewSimulator";
 import Newsfeed from "./pages/Newsfeed";
+import MyPublications from "./pages/MyPublications";
+import PublicationReportPage from "./pages/PublicationReportPage";
+import PublicationHidePage from "./pages/PublicationHidePage";
+import PublicationSharePage from "./pages/PublicationSharePage";
+import CompanyValidations from "./pages/CompanyValidations";
 import Login from "./pages/Login";
 import LoginUser from "./pages/LoginUser";
 import Register from "./pages/Register";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
+import { MatchingDemo } from "./pages/MatchingDemo";
+import { Connections } from "./pages/Connections";
 import Privacy from "./pages/Privacy";
 import Legal from "./pages/Legal";
 import Cookies from "./pages/Cookies";
@@ -51,7 +63,7 @@ import Cookies from "./pages/Cookies";
 import CVGenerator from "./pages/CVGenerator";
 import CVTemplates from "./pages/CVTemplates";
 import LetterGenerator from "./pages/LetterGenerator";
-import LetterTemplates from "./pages/LetterTemplates";
+import MotivationLetters from "./pages/MotivationLetters";
 import DocumentService from "./pages/DocumentService";
 import ITService from "./pages/ITService";
 import SocialMediaService from "./pages/SocialMediaService";
@@ -68,6 +80,7 @@ import InformatiqueServices from "./pages/services/Informatique";
 import DigitalServices from "./pages/services/Digital";
 import GraphiqueServices from "./pages/services/Graphique";
 import FlyerCreator from "./pages/services/FlyerCreator";
+import FlyerGallery from "./pages/services/FlyerGallery";
 import BannerCreator from "./pages/services/BannerCreator";
 import BusinessCardEditor from "./pages/services/BusinessCardEditor";
 import BusinessCardModels from "./pages/services/BusinessCardModels";
@@ -108,11 +121,12 @@ const App = () => (
             <Route path="/services" element={<Services />} />
             <Route path="/emplois" element={<Jobs />} />
             <Route path="/formations" element={<Formations />} />
+            <Route path="/formations/inscription" element={<FormationEnrollment />} />
             <Route path="/a-propos" element={<About />} />
             <Route path="/compte" element={<Profile />} />
+            <Route path="/utilisateur/:userId" element={<UserProfile />} />
             <Route path="/parametres" element={<SettingsLayout /> }>
               <Route index element={<SettingsDashboard />} />
-              <Route path="profil" element={<SettingsProfile />} />
               <Route path="securite" element={<SettingsSecurity />} />
               <Route path="verification" element={<SettingsVerification />} />
               <Route path="recommandations" element={<SettingsRecommendations />} />
@@ -120,27 +134,38 @@ const App = () => (
               {/* Candidat & Entreprise - Routes consolidées */}
               <Route path="profil" element={<CandidateProfile />} />
               <Route path="informations" element={<CandidateInformation />} />
+              <Route path="confidentialite-profil" element={<CandidatePrivacy />} />
               <Route path="profil-entreprise" element={<CompanyProfile />} />
               <Route path="localisation" element={<CompanyLocation />} />
+              <Route path="confidentialite" element={<CompanyPrivacy />} />
               <Route path="abonnement" element={<Subscription />} />
             </Route>
             <Route path="/fil-actualite" element={<Newsfeed />} />
+            <Route path="/mes-publications" element={<MyPublications />} />
+            <Route path="/publication/:publicationId/report" element={<PublicationReportPage />} />
+            <Route path="/publication/:publicationId/hide" element={<PublicationHidePage />} />
+            <Route path="/publication/:publicationId/share" element={<PublicationSharePage />} />
+            <Route path="/company/validations" element={<CompanyValidations />} />
             <Route path="/candidats" element={<Candidates />} />
+            <Route path="/candidate/:candidateId" element={<CandidateDetailPage />} />
+            <Route path="/spontaneous-application/:companyId" element={<SpontaneousApplication />} />
             <Route path="/recrutement" element={<Recrutement />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/annuaire" element={<Annuaire />} />
-            <Route path="/documents" element={<DocumentsPage />} />
+            <Route path="/documents" element={<DocumentationPage />} />
             <Route path="/company/:id" element={<CompanyPage />} />
             <Route path="/recrutement/postuler/:id" element={<ApplyJob />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/test-competence" element={<CompetenceTest />} />
             <Route path="/simulateur-entretien" element={<InterviewSimulator />} />
+            <Route path="/matching-demo" element={<MatchingDemo />} />
+            <Route path="/connexions" element={<Connections />} />
             
           {/* Tools et Services */}
             <Route path="/cv-generator" element={<CVGenerator />} />
             <Route path="/cv-modeles" element={<CVTemplates />} />
             <Route path="/letter-generator" element={<LetterGenerator />} />
-            <Route path="/letter-modeles" element={<LetterTemplates />} />
+            <Route path="/letter-modeles" element={<MotivationLetters />} />
             <Route path="/services/redaction" element={<DocumentService />} />
             <Route path="/services/informatique" element={<ITService />} />
             <Route path="/services/digital" element={<SocialMediaService />} />
@@ -158,6 +183,7 @@ const App = () => (
             <Route path="/services/informatique-pro" element={<InformatiqueServices />} />
             <Route path="/services/digital-pro" element={<DigitalServices />} />
             <Route path="/services/graphique-pro" element={<GraphiqueServices />} />
+            <Route path="/services/flyers" element={<FlyerGallery />} />
             <Route path="/services/flyer-creator" element={<FlyerCreator />} />
             <Route path="/services/banner-creator" element={<BannerCreator />} />
             <Route path="/services/business-card-editor" element={<BusinessCardEditor />} />

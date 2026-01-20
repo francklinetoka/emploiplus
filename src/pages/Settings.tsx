@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import CandidateApplications from '@/components/account/CandidateApplications';
+import CandidatePersonalInfo from './settings/CandidatePersonalInfo';
+import CandidateSocialNetworks from './settings/CandidateSocialNetworks';
+import CandidateProfessionalProfile from './settings/CandidateProfessionalProfile';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +13,7 @@ import { authHeaders } from "@/lib/headers";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Eye, EyeOff, Download, Trash2, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 interface UserProfile {
   id: number;
@@ -41,7 +45,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const token = localStorage.getItem('token');
-  const [activeTab, setActiveTab] = useState<'dashboard'|'security'|'profile'|'myinfo'|'documents'|'recommendation'|'account'|'applications'>('profile');
+  const [activeTab, setActiveTab] = useState<'dashboard'|'security'|'profile'|'personal'|'social'|'professional'|'documents'|'recommendation'|'account'|'applications'>('profile');
 
   // Profile form state
   const [fullName, setFullName] = useState('');
@@ -197,10 +201,22 @@ export default function Settings() {
               <nav className="space-y-1 flex-1">
                 <button className={`w-full text-left px-3 py-2 rounded ${activeTab==='dashboard'?'bg-primary/10':''}`} onClick={()=>setActiveTab('dashboard')}>Tableau de bord</button>
                 <button className={`w-full text-left px-3 py-2 rounded ${activeTab==='security'?'bg-primary/10':''}`} onClick={()=>setActiveTab('security')}>Sécurité</button>
-                <button className={`w-full text-left px-3 py-2 rounded ${activeTab==='profile'?'bg-primary/10':''}`} onClick={()=>setActiveTab('profile')}>Profil</button>
-                <button className={`w-full text-left px-3 py-2 rounded ${activeTab==='myinfo'?'bg-primary/10':''}`} onClick={()=>setActiveTab('myinfo')}>Mes informations</button>
+                
+                {/* For candidates, show separate sections for profile */}
+                {profile?.user_type === 'candidate' ? (
+                  <>
+                    <button className={`w-full text-left px-3 py-2 rounded ${activeTab==='personal'?'bg-primary/10':''}`} onClick={()=>setActiveTab('personal')}>📋 Informations Personnelles</button>
+                    <button className={`w-full text-left px-3 py-2 rounded ${activeTab==='social'?'bg-primary/10':''}`} onClick={()=>setActiveTab('social')}>🌐 Réseaux Sociaux</button>
+                    <button className={`w-full text-left px-3 py-2 rounded ${activeTab==='professional'?'bg-primary/10':''}`} onClick={()=>setActiveTab('professional')}>💼 Profil Professionnel</button>
+                  </>
+                ) : (
+                  <button className={`w-full text-left px-3 py-2 rounded ${activeTab==='profile'?'bg-primary/10':''}`} onClick={()=>setActiveTab('profile')}>Profil</button>
+                )}
+                
                 <button className={`w-full text-left px-3 py-2 rounded ${activeTab==='documents'?'bg-primary/10':''}`} onClick={()=>setActiveTab('documents')}>Documents</button>
-                <button className={`w-full text-left px-3 py-2 rounded ${activeTab==='applications'?'bg-primary/10':''}`} onClick={()=>setActiveTab('applications')}>Candidatures</button>
+                {profile?.user_type === 'candidate' && (
+                  <button className={`w-full text-left px-3 py-2 rounded ${activeTab==='applications'?'bg-primary/10':''}`} onClick={()=>setActiveTab('applications')}>Candidatures</button>
+                )}
                 <button className={`w-full text-left px-3 py-2 rounded ${activeTab==='recommendation'?'bg-primary/10':''}`} onClick={()=>setActiveTab('recommendation')}>Recommandation</button>
                 <button className={`w-full text-left px-3 py-2 rounded ${activeTab==='account'?'bg-primary/10':''}`} onClick={()=>setActiveTab('account')}>Supprimer le compte</button>
               </nav>
@@ -213,7 +229,23 @@ export default function Settings() {
 
           {/* Content area */}
           <div className="md:col-span-3">
-            {activeTab === 'profile' && (
+            {/* Personal Info for Candidates */}
+            {activeTab === 'personal' && profile?.user_type === 'candidate' && (
+              <CandidatePersonalInfo />
+            )}
+
+            {/* Social Networks for Candidates */}
+            {activeTab === 'social' && profile?.user_type === 'candidate' && (
+              <CandidateSocialNetworks />
+            )}
+
+            {/* Professional Profile for Candidates */}
+            {activeTab === 'professional' && profile?.user_type === 'candidate' && (
+              <CandidateProfessionalProfile />
+            )}
+
+            {/* Profile for non-candidates */}
+            {activeTab === 'profile' && profile?.user_type !== 'candidate' && (
               <div className="space-y-6">
                 <Card className="p-6">
                   <h2 className="text-2xl font-semibold mb-6">Informations Personnelles</h2>

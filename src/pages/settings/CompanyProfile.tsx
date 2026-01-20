@@ -97,7 +97,8 @@ export default function CompanyProfile() {
       setUploadingLogo(true);
       try {
         const file = e.target.files[0];
-        const newImageUrl = await uploadFile(file, 'profiles');
+        const token = localStorage.getItem('token');
+        const newImageUrl = await uploadFile(file, token, 'profiles');
         setProfileImageUrl(newImageUrl);
 
         // Update API with new logo
@@ -108,12 +109,16 @@ export default function CompanyProfile() {
           body: JSON.stringify({ profile_image_url: newImageUrl }),
         });
 
-        if (!res.ok) throw new Error('Erreur mise à jour logo');
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.message || `Erreur mise à jour logo (${res.status})`);
+        }
         const updated = await res.json();
         setProfileData(updated);
         toast.success("Logo mis à jour");
       } catch (error) {
         const err = error as Error;
+        console.error('Logo upload error:', err);
         toast.error(err.message || "Erreur lors du chargement du logo");
       } finally {
         setUploadingLogo(false);
@@ -167,7 +172,10 @@ export default function CompanyProfile() {
         }),
       });
 
-      if (!res.ok) throw new Error('Erreur mise à jour');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || `Erreur mise à jour (${res.status})`);
+      }
       const updated = await res.json();
       setProfileData(updated);
       setEditing(false);
@@ -196,7 +204,9 @@ export default function CompanyProfile() {
         <div className="flex items-center gap-4">
           <Avatar className="h-20 w-20">
             <AvatarImage src={profileImageUrl} />
-            <AvatarFallback>{companyName.charAt(0)}</AvatarFallback>
+            <AvatarFallback className="text-lg font-bold">
+              {String(companyName).split(/\s+/).slice(0, 2).map(word => word.charAt(0)).join('').toUpperCase()}
+            </AvatarFallback>
           </Avatar>
           <div className="flex flex-col gap-2">
             <label className="cursor-pointer">

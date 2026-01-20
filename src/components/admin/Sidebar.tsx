@@ -1,5 +1,5 @@
 // src/components/admin/Sidebar.tsx
-import { LogOut, Shield, Users, Briefcase, BookOpen, LayoutDashboard, UserPlus, FileCheck, ShoppingBag, Bell } from "lucide-react";
+import { LogOut, Shield, Users, Briefcase, BookOpen, LayoutDashboard, UserPlus, FileCheck, ShoppingBag, Bell, ShoppingCart, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -41,6 +41,14 @@ export function Sidebar() {
     // Catalogs management available to all admins
     ...(role === "super_admin" || role === "admin_offres" ? [
       { label: "Catalogue Services", icon: ShoppingBag, path: "/admin/catalogs" },
+    ] : []),
+    // Phase 4 - Service Catalog & Pricing (Catalogue & Codes Promos)
+    ...(role === "super_admin" ? [
+      { label: "Catalogue Services", icon: ShoppingCart, path: "/admin?tab=catalog" },
+    ] : []),
+    // Phase 4 - System Health Monitoring
+    ...(role === "super_admin" ? [
+      { label: "Santé du Système", icon: AlertTriangle, path: "/admin?tab=health" },
     ] : []),
   ];
 

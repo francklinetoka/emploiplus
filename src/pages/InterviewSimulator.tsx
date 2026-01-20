@@ -42,10 +42,9 @@ export default function InterviewSimulator() {
   useEffect(() => {
     const testTaken = localStorage.getItem("interview_sim_taken");
     if (testTaken && !user) {
-      toast.error("Vous avez déjà utilisé votre essai gratuit. Connectez-vous pour plus de simulations.");
-      navigate("/connexion");
+      toast.warning("Vous avez déjà utilisé votre essai gratuit. Connectez-vous pour plus de simulations.");
     }
-  }, [user, navigate]);
+  }, [user]);
 
   const startInterview = () => {
     if (!position.trim()) {

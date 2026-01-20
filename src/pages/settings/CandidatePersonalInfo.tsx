@@ -20,13 +20,13 @@ export default function CandidatePersonalInfo() {
   const [profileData, setProfileData] = useState<Record<string, unknown> | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [fullName, setFullName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [birthdate, setBirthdate] = useState("");
   const [gender, setGender] = useState("");
-  const [linkedin, setLinkedin] = useState("");
   const [editing, setEditing] = useState(false);
 
   useEffect(() => {
@@ -50,13 +50,20 @@ export default function CandidatePersonalInfo() {
       if (!res.ok) throw new Error('Erreur chargement profil');
       const data = await res.json();
       setProfileData(data);
-      setFullName(data.full_name || "");
+      const fullName = data.full_name || "";
+      const parts = fullName.trim().split(/\s+/);
+      if (parts.length > 1) {
+        setFirstName(parts.slice(0, -1).join(' '));
+        setLastName(parts[parts.length - 1]);
+      } else {
+        setFirstName(fullName);
+        setLastName("");
+      }
       setEmail(data.email || "");
       setPhone(data.phone || "");
       setCity((data as any).city || "");
       setBirthdate((data as any).birthdate || "");
       setGender((data as any).gender || "");
-      setLinkedin((data as any).linkedin || "");
       if (data.profile_image_url) {
         setPreviewUrl(data.profile_image_url);
       }
@@ -98,13 +105,12 @@ export default function CandidatePersonalInfo() {
         method: 'PUT',
         headers: headersPut,
         body: JSON.stringify({
-          full_name: fullName,
+          full_name: (firstName + (lastName ? ' ' + lastName : '')).trim(),
           email: email,
           phone: phone,
           city: city,
           birthdate: birthdate,
           gender: gender,
-          linkedin: linkedin,
           profile_image_url: profileImageUrl,
         }),
       });
@@ -133,7 +139,7 @@ export default function CandidatePersonalInfo() {
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Informations Personnelles</h2>
+        <h2 className="text-2xl font-bold">📋 Informations Personnelles</h2>
         {!editing ? (
           <Button onClick={() => setEditing(true)}>Modifier</Button>
         ) : (
@@ -146,7 +152,7 @@ export default function CandidatePersonalInfo() {
         <div className="flex items-center gap-4">
           <Avatar className="h-24 w-24">
             <AvatarImage src={previewUrl || (profileData?.profile_image_url as string)} />
-            <AvatarFallback>{String(fullName).split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
+            <AvatarFallback>{(firstName + ' ' + lastName).split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
           {editing && (
             <div>
@@ -162,91 +168,111 @@ export default function CandidatePersonalInfo() {
           )}
         </div>
 
-        {/* Nom complet */}
-        <div className="space-y-2">
-          <Label htmlFor="fullName">Nom complet</Label>
-          <Input
-            id="fullName"
-            value={fullName}
-            disabled={!editing}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-          />
+        {/* Section: Prénom(s) et Nom(s) */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">Identité</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Prénom(s) */}
+            <div className="space-y-2">
+              <Label htmlFor="firstName">Prénom(s) *</Label>
+              <Input
+                id="firstName"
+                value={firstName}
+                disabled={!editing}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="Votre prénom"
+                required
+              />
+            </div>
+
+            {/* Nom(s) */}
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Nom(s) *</Label>
+              <Input
+                id="lastName"
+                value={lastName}
+                disabled={!editing}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Votre nom"
+                required
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Email */}
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            disabled={!editing}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+        {/* Section: Date de naissance et Genre */}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Date de naissance */}
+            <div className="space-y-2">
+              <Label htmlFor="birthdate">Date de naissance</Label>
+              <Input
+                id="birthdate"
+                type="date"
+                value={birthdate}
+                disabled={!editing}
+                onChange={(e) => setBirthdate(e.target.value)}
+              />
+            </div>
+
+            {/* Genre */}
+            <div className="space-y-2">
+              <Label htmlFor="gender">Genre</Label>
+              <Select value={gender} onValueChange={setGender} disabled={!editing}>
+                <SelectTrigger id="gender">
+                  <SelectValue placeholder="Sélectionner le genre" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GENDERS.map(g => (
+                    <SelectItem key={g} value={g}>{g}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
-        {/* Téléphone */}
-        <div className="space-y-2">
-          <Label htmlFor="phone">Téléphone</Label>
-          <Input
-            id="phone"
-            value={phone}
-            disabled={!editing}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-        </div>
+        {/* Section: Coordonnées */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">📞 Coordonnées</h3>
+          <div className="space-y-4">
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                disabled={!editing}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-        {/* Date de naissance */}
-        <div className="space-y-2">
-          <Label htmlFor="birthdate">Date de naissance</Label>
-          <Input
-            id="birthdate"
-            type="date"
-            value={birthdate}
-            disabled={!editing}
-            onChange={(e) => setBirthdate(e.target.value)}
-          />
-        </div>
+            {/* Téléphone */}
+            <div className="space-y-2">
+              <Label htmlFor="phone">Téléphone *</Label>
+              <Input
+                id="phone"
+                value={phone}
+                disabled={!editing}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Ex: +242 XX XX XX XX"
+              />
+            </div>
 
-        {/* Genre */}
-        <div className="space-y-2">
-          <Label htmlFor="gender">Genre</Label>
-          <Select value={gender} onValueChange={setGender} disabled={!editing}>
-            <SelectTrigger id="gender">
-              <SelectValue placeholder="Sélectionner le genre" />
-            </SelectTrigger>
-            <SelectContent>
-              {GENDERS.map(g => (
-                <SelectItem key={g} value={g}>{g}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Ville */}
-        <div className="space-y-2">
-          <Label htmlFor="city">Ville / Quartier</Label>
-          <Input
-            id="city"
-            value={city}
-            disabled={!editing}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="Ex: Brazzaville, Kinshasa"
-          />
-        </div>
-
-        {/* LinkedIn */}
-        <div className="space-y-2">
-          <Label htmlFor="linkedin">Profil LinkedIn</Label>
-          <Input
-            id="linkedin"
-            value={linkedin}
-            disabled={!editing}
-            onChange={(e) => setLinkedin(e.target.value)}
-            placeholder="https://www.linkedin.com/in/..."
-          />
+            {/* Ville / Quartier */}
+            <div className="space-y-2">
+              <Label htmlFor="city">Ville / Quartier *</Label>
+              <Input
+                id="city"
+                value={city}
+                disabled={!editing}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Ex: Brazzaville, Kinshasa"
+              />
+            </div>
+          </div>
         </div>
 
         {editing && (

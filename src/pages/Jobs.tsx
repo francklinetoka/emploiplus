@@ -2,19 +2,33 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Briefcase, ExternalLink, ChevronDown, ChevronUp, MapPin, Calendar, Building } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Briefcase, ExternalLink, ChevronDown, ChevronUp, MapPin, Calendar, Building, Building2, BookOpen, User, Loader2, Search, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useState, useMemo, useEffect } from "react";
-import { useLocation } from 'react-router-dom';
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 
-// ⚠️ NOUVELLE IMPORTATION : Importez votre composant de recherche
-import JobSearch from "@/components/jobs/JobSearch";
-import JobRecommendations from "@/components/jobs/JobRecommendations";
+import JobSearchCompact from "@/components/jobs/JobSearchCompact";
 import { toast } from 'sonner';
 import SaveJobButton from "@/components/jobs/SaveJobButton";
+import { JobListItem } from "@/components/jobs/JobListItem";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { authHeaders } from '@/lib/headers';
+import { useJobSearch } from "@/hooks/useJobSearch";
+import { JobSearchInput } from "@/components/jobs/JobSearchInput";
 
 const Jobs = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Use optimized search hook for debouncing
+  const { localInput, debouncedSearch, handleInputChange, showMinCharsWarning } = useJobSearch({
+    debounceMs: 500,
+    minChars: 3,
+  });
 
   const [filters, setFilters] = useState({
     search: "",
@@ -26,32 +40,136 @@ const Jobs = () => {
     type: "all",
   });
 
+  // Infinite scroll state
+  const [allJobs, setAllJobs] = useState<Record<string, unknown>[]>([]);
+  const [formations, setFormations] = useState<Record<string, unknown>[]>([]);
+  const [candidates, setCandidates] = useState<Record<string, unknown>[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
+  const [expandFilters, setExpandFilters] = useState(false);
+  const loaderRef = useRef<HTMLDivElement>(null);
+
+  // Fetch initial jobs when filters change
   useEffect(() => {
     try {
       const params = new URLSearchParams(location.search);
       const q = params.get('q') || params.get('search') || '';
       if (q) setFilters((s) => ({ ...s, search: q }));
-    } catch (e) {}
+    } catch (e) {
+      console.error('Error parsing location search:', e);
+    }
   }, [location.search]);
 
-  const { data: jobs = [], isLoading } = useQuery({
-    queryKey: ["jobs", filters],
-    queryFn: () => api.getJobs({ q: filters.search || '', location: filters.location || '', company: filters.company || '', sector: filters.sector || '', type: filters.type && filters.type !== 'all' ? filters.type : '' }),
-    keepPreviousData: true,
+  // Update filters when debounced search changes
+  useEffect(() => {
+    setFilters((prev) => ({ ...prev, search: debouncedSearch }));
+  }, [debouncedSearch]);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setAllJobs([]);
+    setPage(1);
+    setHasMore(true);
+  }, [filters]);
+
+  // Fetch formations and candidates for sidebar
+  useEffect(() => {
+    if (user) {
+      fetchFormations();
+      fetchCandidates();
+    }
+  }, [user]);
+
+  const fetchFormations = async () => {
+    try {
+      const response = await fetch('/api/formations');
+      if (response.ok) {
+        const data = await response.json();
+        setFormations(Array.isArray(data) ? data.slice(0, 5) : []);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des formations:', error);
+    }
+  };
+
+  const fetchCandidates = async () => {
+    try {
+      const response = await fetch('/api/users?limit=5');
+      if (response.ok) {
+        const data = await response.json();
+        setCandidates(Array.isArray(data) ? data.slice(0, 5) : []);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des candidats:', error);
+    }
+  };
+
+  // Fetch jobs with pagination
+  const { data: jobsData = { data: [], pagination: { total: 0, pages: 0, page: 1, hasNextPage: false, hasPreviousPage: false } }, isLoading } = useQuery({
+    queryKey: ["jobs", filters, page],
+    queryFn: () =>
+      api.getJobs({
+        q: filters.search || '',
+        location: filters.location || '',
+        company: filters.company || '',
+        sector: filters.sector || '',
+        type: filters.type && filters.type !== 'all' ? filters.type : '',
+        page,
+      }),
   });
 
-  const { user } = useAuth();
+  // Update allJobs when new data arrives
+  useEffect(() => {
+    if (isLoading) return;
+
+    // Handle both array and object responses
+    const newJobs = Array.isArray(jobsData) ? jobsData : (jobsData?.data || []);
+
+    if (page === 1) {
+      setAllJobs(newJobs);
+    } else {
+      setAllJobs((prev) => [...prev, ...newJobs]);
+    }
+
+    // Check if there are more jobs to load
+    const pagination = jobsData?.pagination || {};
+    setHasMore(pagination.hasNextPage || false);
+  }, [jobsData, isLoading, page]);
+
+  // Infinite scroll handler
+  const loadMore = useCallback(() => {
+    if (!isLoadingMore && hasMore && !isLoading) {
+      setIsLoadingMore(true);
+      setPage((p) => p + 1);
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, hasMore, isLoading]);
+
+  // Setup intersection observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading && !isLoadingMore) {
+          loadMore();
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, isLoading, isLoadingMore, loadMore]);
+
   const profession = user?.profession || '';
   const skills: string[] = Array.isArray(user?.skills) ? user.skills : [];
-  const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
-  
-  // Filter state is handled above and passed to JobSearch
 
-  // Server returns already filtered jobs based on query; use as-is
-  const filteredJobs = jobs;
-
-  // Personalized recommendations: simple matching by profession or skills in title/description
-  const recommended = filteredJobs.filter((j: Record<string, unknown>) => {
+  // Personalized recommendations from first page
+  const recommended = allJobs.slice(0, 10).filter((j: Record<string, unknown>) => {
     const hay = `${String(j['title'] || '')} ${String(j['description'] || '')} ${String(j['sector'] || '')}`.toLowerCase();
     if (profession && hay.includes(String(profession).toLowerCase())) return true;
     for (const s of skills) {
@@ -60,178 +178,627 @@ const Jobs = () => {
     return false;
   }).slice(0, 4);
 
-  if (isLoading) {
+  if (isLoading && page === 1) {
     return (
       <div className="container py-20">
-        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-4">
           {[1,2,3,4,5,6].map(i => (
-            <Skeleton key={i} className="h-64 rounded-xl" />
+            <Skeleton key={i} className="h-24 rounded-lg" />
           ))}
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="container py-12 max-w-7xl mx-auto">
-      {/* Page Header 
-      <div className="text-center mb-12">
-        <h1 className="text-5xl font-bold mb-4">Offres d'emploi</h1>
-        <p className="text-xl text-muted-foreground">
-          Plus de {jobs.length} offre{jobs.length > 1 ? "s" : ""} disponible{jobs.length > 1 ? "s" : ""} au Congo
-        </p>
-      </div>
-*/}
-      {/* Search Component */}
-      <div className="mb-12">
-        <JobSearch onFilterChange={setFilters} />
-      </div>
-      
-      {/* Jobs List */}
-      {filteredJobs.length === 0 ? (
-        <div className="text-center py-32">
-          <Briefcase className="h-32 w-32 mx-auto text-gray-300 mb-8" />
-          <p className="text-2xl text-muted-foreground">Aucune offre pour le moment</p>
-        </div>
-      ) : (
-        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mb-16">
-            {filteredJobs.map((jobItem: Record<string, unknown>) => {
-            const job = jobItem as Record<string, unknown>;
-            const isExpanded = expandedJobId === String(job.id);
-            const hasApplicationUrl = String(job.application_url || '').trim() !== '';
-            
-            return (
-              <article key={String(job.id)} className="transform hover:-translate-y-2 transition">
-                <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border hover:border-primary transition h-full flex flex-col">
-                  {/* Header */}
-                  <div className="mb-4">
-                      <div className="flex items-start gap-3">
-                        <Briefcase className="h-5 w-5 text-primary mt-1" />
-                        <div>
-                          <h3 className="text-2xl font-bold mb-1 line-clamp-2">{String(job.title)}</h3>
-                          <p className="text-sm text-muted-foreground">{String(job.company)} • {String(job.location)}</p>
-                        </div>
-                      </div>
+  // For non-authenticated users, show a different layout
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Compact Search Bar */}
+        <JobSearchCompact onFilterChange={setFilters} />
+
+        {/* Main Content with Two Columns */}
+        <div className="container py-12 px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* LEFT COLUMN - FORMATIONS & CTA */}
+            <div className="lg:col-span-3">
+              <div className="space-y-6 sticky top-24">
+                {/* Formations Section */}
+                <Card className="p-6 border-0 shadow-md">
+                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-secondary" />
+                    Formations disponibles
+                  </h3>
+                  <div className="space-y-3">
+                    {formations.length > 0 ? (
+                      formations.map((formation: Record<string, unknown>) => (
+                        <Link key={formation.id} to={`/formations`} className="block p-3 hover:bg-muted rounded-lg transition-colors cursor-pointer border-l-4 border-secondary">
+                          <p className="font-semibold text-sm line-clamp-1">{formation.title || formation.name || "Formation"}</p>
+                          <p className="text-xs text-muted-foreground">{formation.provider || "Formation"}</p>
+                          <p className="text-xs text-secondary mt-1">⏱️ Découvrez le contenu</p>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Aucune formation disponible</p>
+                    )}
                   </div>
+                  <Button asChild variant="outline" className="w-full mt-4" size="sm">
+                    <Link to="/formations">
+                      Découvrir toutes les formations
+                    </Link>
+                  </Button>
+                </Card>
 
-                  {/* Description - clipped or full */}
-                  <p className={`text-sm text-gray-600 flex-1 ${isExpanded ? '' : 'line-clamp-4'}`}>
-                    {String(job.description)}
-                  </p>
+                {/* Call to action */}
+                <Card className="p-6 border-0 shadow-md bg-gradient-to-br from-blue-50 to-blue-100">
+                  <h3 className="font-bold text-lg mb-4">Accédez à plus de fonctionnalités</h3>
+                  <p className="text-sm text-gray-700 mb-4">Connectez-vous pour explorer les offres d'emploi et postuler directement.</p>
+                  <Button asChild className="w-full mb-2">
+                    <Link to="/connexion">
+                      Se connecter
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/inscription">
+                      Créer un compte
+                    </Link>
+                  </Button>
+                </Card>
+              </div>
+            </div>
 
-                  {/* Status & Sector badges */}
-                    <div className="mt-6 flex flex-wrap justify-between items-center gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${job.published ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}>
-                        {job.published ? "Publiée" : "Brouillon"}
-                      </span>
-                      {job.sector && <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm">{String(job.sector)}</span>}
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
-                      <span>{String(job.location)}</span>
-                      <Calendar className="h-4 w-4 ml-2" />
-                      <span>
-                        {job.deadline ? new Date(String(job.deadline)).toLocaleDateString('fr-FR') : new Date(String(job.published && job.published_at ? job.published_at : job.created_at)).toLocaleDateString('fr-FR')}
-                      </span>
-                    </div>
-                  </div>
+            {/* CENTER & RIGHT COLUMN - JOBS LIST (Main Content) */}
+            <div className="lg:col-span-9">
+              {/* Search and Filters Section */}
+              <Card className="p-4 border-0 shadow-md mb-6">
+                <div className="flex flex-col gap-3">
+                  {/* Main Filter Row - Poste visible always */}
+                  <div className="flex gap-3 items-end">
+                    <JobSearchInput
+                      value={localInput}
+                      onChange={handleInputChange}
+                      placeholder="Ex: Développeur..."
+                      minCharsWarning={showMinCharsWarning}
+                    />
 
-                  {/* Action Buttons */}
-                  <div className="mt-6 flex gap-3">
-                    {/* Expand/Collapse button */}
-                    <button
-                      onClick={() => setExpandedJobId(isExpanded ? null : String(job.id))}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-white transition"
+                    {/* Toggle Advanced Filters */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setExpandFilters(!expandFilters)}
+                      className="whitespace-nowrap h-10"
                     >
-                      {isExpanded ? (
+                      {expandFilters ? (
                         <>
-                          <ChevronUp className="w-4 h-4" />
-                          Voir moins
+                          <ChevronUp className="w-4 h-4 mr-1" />
+                          Moins de filtres
                         </>
                       ) : (
                         <>
-                          <ChevronDown className="w-4 h-4" />
-                          Voir plus
+                          <ChevronDown className="w-4 h-4 mr-1" />
+                          Plus de filtres
                         </>
                       )}
-                    </button>
+                    </Button>
+                  </div>
 
-                    {/* Save job button */}
-                    <SaveJobButton jobId={String(job.id)} />
+                  {/* Advanced Filters - Collapsible */}
+                  {expandFilters && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-gray-200">
+                      {/* Location filter */}
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Lieu</label>
+                        <input
+                          type="text"
+                          placeholder="Ville..."
+                          value={filters.location}
+                          onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
+                        />
+                      </div>
 
-                    {/* Apply buttons */}
-                    {job.application_via_emploi && (() => {
-                      const dl = job.deadline ? new Date(String(job.deadline)).getTime() : null;
-                      const expired = dl ? dl < Date.now() : false;
-                      if (!expired) {
-                        return (
-                          <a
-                            href={`/recrutement/postuler/${String(job.id)}`}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:opacity-90 transition"
-                          >
-                            Postuler avec Emploi+
-                          </a>
-                        );
-                      }
+                      {/* Company filter */}
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Entreprise</label>
+                        <input
+                          type="text"
+                          placeholder="Nom..."
+                          value={filters.company}
+                          onChange={(e) => setFilters({ ...filters, company: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
+                        />
+                      </div>
 
-                      return (
-                        <button
-                          type="button"
-                          title="La date limite de candidature est passée"
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-200 text-gray-500 rounded-lg font-semibold cursor-not-allowed"
-                          onClick={() => toast.error("Date limite de candidature dépassée — vous ne pouvez plus postuler.")}
+                      {/* Contract Type filter */}
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Type</label>
+                        <select
+                          value={filters.type}
+                          onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
                         >
-                          Date limite passée
-                        </button>
-                      );
-                    })()}
-                    {hasApplicationUrl && (
-                      <a
-                        href={String(job.application_url)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-white transition"
+                          <option value="all">Tous</option>
+                          <option value="cdi">CDI</option>
+                          <option value="cdd">CDD</option>
+                          <option value="stage">Stage</option>
+                          <option value="freelance">Freelance</option>
+                          <option value="apprenticeship">Apprentissage</option>
+                        </select>
+                      </div>
+
+                      {/* Sector filter */}
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Secteur</label>
+                        <select
+                          value={filters.sector}
+                          onChange={(e) => setFilters({ ...filters, sector: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
+                        >
+                          <option value="">Tous</option>
+                          <option value="tech">Technologie</option>
+                          <option value="finance">Finance</option>
+                          <option value="healthcare">Santé</option>
+                          <option value="education">Éducation</option>
+                          <option value="retail">Commerce</option>
+                          <option value="manufacturing">Industrie</option>
+                          <option value="other">Autres</option>
+                        </select>
+                      </div>
+
+                      {/* Reset filters button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="whitespace-nowrap h-10 sm:col-span-2 lg:col-span-1"
+                        onClick={() =>
+                          setFilters({
+                            search: "",
+                            location: "",
+                            country: "",
+                            company: "",
+                            sector: "",
+                            competence: "",
+                            type: "all",
+                          })
+                        }
                       >
-                        Lien externe
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
+                        Réinitialiser
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </Card>
+
+              {isLoading && page === 1 ? (
+                <div className="space-y-4">
+                  {[1, 2, 3, 4, 5, 6].map(i => (
+                    <Skeleton key={i} className="h-24 rounded-lg" />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div>
+                    {allJobs.length === 0 && !isLoading ? (
+                      <div className="text-center py-24">
+                        <Briefcase className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                        <p className="text-lg text-gray-500">Aucune offre ne correspond à votre recherche</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {allJobs.map((jobItem: Record<string, unknown>) => (
+                          <JobListItem
+                            key={String(jobItem.id)}
+                            job={jobItem}
+                            isExpanded={expandedJobId === String(jobItem.id)}
+                            onToggle={() =>
+                              setExpandedJobId(
+                                expandedJobId === String(jobItem.id) ? null : String(jobItem.id)
+                              )
+                            }
+                            onApply={() => {
+                              toast.info("Connectez-vous pour postuler");
+                              navigate("/connexion");
+                            }}
+                            isSaved={false}
+                            onSave={() => toast.info("Connectez-vous pour sauvegarder")}
+                          />
+                        ))}
+
+                        {/* Infinite scroll loader */}
+                        <div ref={loaderRef} className="py-8 text-center">
+                          {hasMore ? (
+                            <>
+                              <Skeleton className="h-20 rounded-lg" />
+                              <p className="text-sm text-gray-500 mt-4">Chargement des offres...</p>
+                            </>
+                          ) : allJobs.length > 0 ? (
+                            <p className="text-gray-500 py-8">Fin de la liste</p>
+                          ) : null}
+                        </div>
+                      </div>
                     )}
                   </div>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      )}
-
-      {/* CTA Section at bottom */}
-      <div className="mt-20 bg-gradient-to-r from-blue-50 to-orange-50 p-12 rounded-2xl border border-blue-200">
-        <div className="max-w-2xl mx-auto text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Offres recommandées pour vous</h2>
-          <p className="text-muted-foreground mb-6">
-            {user 
-              ? "Basées sur votre profil et vos préférences"
-              : "Connectez-vous pour voir des offres personnalisées selon votre profil."
-            }
-          </p>
-          {!user && (
-            <div className="flex gap-4 justify-center">
-              <a href="/login" className="bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition">
-                Se connecter
-              </a>
-              <a href="/register" className="border border-primary text-primary px-6 py-3 rounded-lg font-semibold hover:bg-primary hover:text-white transition">
-                Créer un compte
-              </a>
+                </>
+              )}
             </div>
-          )}
-        </div>
-
-        {user && (
-          <div className="max-w-4xl mx-auto">
-            <JobRecommendations />
           </div>
-        )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Compact Search Bar */}
+      <JobSearchCompact onFilterChange={setFilters} />
+
+      {/* Main Content with Three Columns */}
+      <div className="container py-12 px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* LEFT COLUMN - PROFILE ONLY */}
+          <div className="lg:col-span-2">
+            <div className="space-y-6 sticky top-24">
+              {/* Profile Card */}
+              <Card className="p-6 border-0 shadow-md">
+                <div className="text-center mb-6">
+                  <Avatar className="h-20 w-20 mx-auto mb-4">
+                    <AvatarImage src={user?.profile_image_url} alt={user?.full_name} />
+                    <AvatarFallback className="text-2xl font-bold">
+                      {(user?.full_name || user?.company_name || "")
+                        .split(" ")
+                        .map(n => n[0])
+                        .join("")
+                        .toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h3 className="font-bold text-lg">{user?.full_name || user?.company_name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Candidat
+                  </p>
+                </div>
+
+                {/* Link to My Publications */}
+                <Button asChild variant="outline" className="w-full mb-3" size="sm">
+                  <Link to="/mes-publications">
+                    📝 Mes Publications
+                  </Link>
+                </Button>
+
+                {/* Link to CV Creator */}
+                <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 mb-6" size="sm">
+                  <Link to="/cv-generator">
+                    📄 Créer mon CV
+                  </Link>
+                </Button>
+
+                {/* Link to Profile Settings */}
+                <Button asChild variant="ghost" className="w-full" size="sm">
+                  <Link to="/parametres">
+                    ⚙️ Mon Profil
+                  </Link>
+                </Button>
+              </Card>
+            </div>
+          </div>
+
+          {/* MIDDLE COLUMN - JOBS LIST & FILTERS */}
+          <div className="lg:col-span-7">
+            {/* Search and Filters Section */}
+            <Card className="p-4 border-0 shadow-md mb-6">
+              <div className="flex flex-col gap-3">
+                {/* Main Filter Row - Poste visible always */}
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1 min-w-[200px]">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Poste</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Développeur..."
+                      value={filters.search}
+                      onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
+                    />
+                  </div>
+
+                  {/* Toggle Advanced Filters */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setExpandFilters(!expandFilters)}
+                    className="whitespace-nowrap h-10"
+                  >
+                    {expandFilters ? (
+                      <>
+                        <ChevronUp className="w-4 h-4 mr-1" />
+                        Moins
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-4 h-4 mr-1" />
+                        Plus
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Advanced Filters - Collapsible */}
+                {expandFilters && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-gray-200">
+                    {/* Location filter */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Lieu</label>
+                      <input
+                        type="text"
+                        placeholder="Ville..."
+                        value={filters.location}
+                        onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
+                      />
+                    </div>
+
+                    {/* Company filter */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Entreprise</label>
+                      <input
+                        type="text"
+                        placeholder="Nom..."
+                        value={filters.company}
+                        onChange={(e) => setFilters({ ...filters, company: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
+                      />
+                    </div>
+
+                    {/* Contract Type filter */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Type</label>
+                      <select
+                        value={filters.type}
+                        onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
+                      >
+                        <option value="all">Tous</option>
+                        <option value="cdi">CDI</option>
+                        <option value="cdd">CDD</option>
+                        <option value="stage">Stage</option>
+                        <option value="freelance">Freelance</option>
+                        <option value="apprenticeship">Apprentissage</option>
+                      </select>
+                    </div>
+
+                    {/* Sector filter */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Secteur</label>
+                      <select
+                        value={filters.sector}
+                        onChange={(e) => setFilters({ ...filters, sector: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
+                      >
+                        <option value="">Tous</option>
+                        <option value="tech">Technologie</option>
+                        <option value="finance">Finance</option>
+                        <option value="healthcare">Santé</option>
+                        <option value="education">Éducation</option>
+                        <option value="retail">Commerce</option>
+                        <option value="manufacturing">Industrie</option>
+                        <option value="other">Autres</option>
+                      </select>
+                    </div>
+
+                    {/* Reset filters button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="whitespace-nowrap h-10 sm:col-span-2 lg:col-span-1"
+                      onClick={() =>
+                        setFilters({
+                          search: "",
+                          location: "",
+                          country: "",
+                          company: "",
+                          sector: "",
+                          competence: "",
+                          type: "all",
+                        })
+                      }
+                    >
+                      Réinitialiser
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </Card>
+            {isLoading && page === 1 ? (
+              <div className="space-y-4">
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                  <Skeleton key={i} className="h-24 rounded-lg" />
+                ))}
+              </div>
+            ) : (
+              <>
+                {/* Recommended section */}
+                {user && recommended.length > 0 && (
+                  <div className="mb-12">
+                    <h2 className="text-2xl font-bold mb-2">Offres recommandées pour vous</h2>
+                    <p className="text-gray-600 mb-6">Basées sur votre profil et vos compétences</p>
+                    <div className="space-y-4 mb-8">
+                      {recommended.map((jobItem: Record<string, unknown>) => (
+                        <JobListItem
+                          key={String(jobItem.id)}
+                          job={jobItem}
+                          isExpanded={expandedJobId === String(jobItem.id)}
+                          onToggle={() =>
+                            setExpandedJobId(
+                              expandedJobId === String(jobItem.id) ? null : String(jobItem.id)
+                            )
+                          }
+                          onApply={() => {
+                            const dl = jobItem.deadline
+                              ? new Date(String(jobItem.deadline)).getTime()
+                              : null;
+                            const expired = dl ? dl < Date.now() : false;
+                            if (!expired) {
+                              navigate(`/recrutement/postuler/${String(jobItem.id)}`);
+                            } else {
+                              toast.error("Date limite dépassée");
+                            }
+                          }}
+                          isSaved={false}
+                          onSave={() => toast.info("Sauvegardé")}
+                        />
+                      ))}
+                    </div>
+                    <hr className="my-8" />
+                  </div>
+                )}
+
+                {/* All Jobs Section */}
+                <div>
+                 
+
+                  {allJobs.length === 0 && !isLoading ? (
+                    <div className="text-center py-24">
+                      <Briefcase className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                      <p className="text-lg text-gray-500">Aucune offre ne correspond à votre recherche</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {allJobs.map((jobItem: Record<string, unknown>) => (
+                        <JobListItem
+                          key={String(jobItem.id)}
+                          job={jobItem}
+                          isExpanded={expandedJobId === String(jobItem.id)}
+                          onToggle={() =>
+                            setExpandedJobId(
+                              expandedJobId === String(jobItem.id) ? null : String(jobItem.id)
+                            )
+                          }
+                          onApply={() => {
+                            const dl = jobItem.deadline
+                              ? new Date(String(jobItem.deadline)).getTime()
+                              : null;
+                            const expired = dl ? dl < Date.now() : false;
+                            if (!expired) {
+                              navigate(`/recrutement/postuler/${String(jobItem.id)}`);
+                            } else {
+                              toast.error("Date limite dépassée");
+                            }
+                          }}
+                          isSaved={false}
+                          onSave={() => toast.info("Sauvegardé")}
+                        />
+                      ))}
+
+                      {/* Infinite scroll loader */}
+                      <div ref={loaderRef} className="py-8 text-center">
+                        {hasMore ? (
+                          <>
+                            <Skeleton className="h-20 rounded-lg" />
+                            <p className="text-sm text-gray-500 mt-4">Chargement des offres...</p>
+                          </>
+                        ) : allJobs.length > 0 ? (
+                          <p className="text-gray-500 py-8">Fin de la liste</p>
+                        ) : null}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* RIGHT COLUMN - RECOMMENDATIONS */}
+          <div className="lg:col-span-3">
+            <div className="space-y-6 sticky top-24">
+              {/* Formations recommandées */}
+              <Card className="p-6 border-0 shadow-md">
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-secondary" />
+                  Formations recommandées
+                </h3>
+                <div className="space-y-3">
+                  {formations.length > 0 ? (
+                    formations.map((formation: Record<string, unknown>) => (
+                      <Link key={formation.id} to={`/formations`} className="block p-3 hover:bg-muted rounded-lg transition-colors cursor-pointer border-l-4 border-secondary">
+                        <p className="font-semibold text-sm line-clamp-1">{formation.title || formation.name || "Formation"}</p>
+                        <p className="text-xs text-muted-foreground">{formation.provider || "Formation"}</p>
+                        <p className="text-xs text-secondary mt-1">⏱️ Découvrez le contenu</p>
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Aucune formation disponible</p>
+                  )}
+                </div>
+                <Button asChild variant="outline" className="w-full mt-4" size="sm">
+                  <Link to="/formations">
+                    Découvrir toutes les formations
+                  </Link>
+                </Button>
+              </Card>
+
+              {/* Entreprises à découvrir */}
+              <Card className="p-6 border-0 shadow-md bg-gradient-to-br from-purple-50 to-white border-l-4 border-purple-500">
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-purple-600" />
+                  Entreprises à découvrir
+                </h3>
+                <div className="space-y-3">
+                  {candidates.filter((c: Record<string, unknown>) => c.user_type === 'company').slice(0, 5).length > 0 ? (
+                    candidates
+                      .filter((c: Record<string, unknown>) => c.user_type === 'company')
+                      .slice(0, 5)
+                      .map((company: Record<string, unknown>) => (
+                        <Link key={company.id} to={`/utilisateur/${company.id}`} className="block p-3 hover:bg-purple-100 rounded-lg transition-colors cursor-pointer border-l-4 border-purple-500 hover:border-purple-600">
+                          <div className="flex items-start gap-3">
+                            <Avatar className="h-10 w-10 flex-shrink-0 border border-purple-200">
+                              <AvatarImage src={company.profile_image_url} alt={company.company_name} />
+                              <AvatarFallback className="text-xs bg-purple-500 text-white">
+                                {(company.company_name || "")
+                                  .split(" ")
+                                  .map((n: string) => n[0])
+                                  .join("")
+                                  .toUpperCase()
+                                  .slice(0, 2)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm line-clamp-1 text-gray-900">{company.company_name}</p>
+                              <p className="text-xs text-gray-600 line-clamp-1">Entreprise</p>
+                              <p className="text-xs text-purple-600 mt-1 font-semibold">⭐ Offres disponibles</p>
+                            </div>
+                          </div>
+                        </Link>
+                      ))
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Aucune entreprise disponible</p>
+                  )}
+                </div>
+                <Button asChild variant="outline" className="w-full mt-4 border-purple-500 text-purple-600 hover:bg-purple-50" size="sm">
+                  <Link to="/entreprises">
+                    Consulter toutes les entreprises
+                  </Link>
+                </Button>
+              </Card>
+
+              {/* Conseils de candidature */}
+              <Card className="p-6 border-0 shadow-md bg-gradient-to-br from-amber-50 to-white border-l-4 border-amber-500">
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                  <Briefcase className="h-5 w-5 text-amber-600" />
+                  💡 Conseil du jour
+                </h3>
+                <div className="space-y-3 text-sm">
+                  <p className="text-gray-700 leading-relaxed">
+                    Personnalisez votre lettre de motivation pour chaque offre. Les recruteurs apprécient les candidatures qui montrent que vous avez recherché l'entreprise.
+                  </p>
+                  <div className="pt-3 border-t border-amber-200">
+                    <p className="font-semibold text-amber-700 mb-2">✨ Conseil Pro:</p>
+                    <p className="text-xs text-gray-600">
+                      Mentionnez des projets ou réalisations spécifiques qui correspondent aux besoins du poste.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -19,6 +19,19 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        // Custom orange color: RGB(235, 168, 55) = #eba837
+        orange: {
+          50: "#fef6f0",
+          100: "#fed5b8",
+          200: "#fdb383",
+          300: "#fc924d",
+          400: "#fb7a1f",
+          500: "#eba837",
+          600: "#d89830",
+          700: "#c58828",
+          800: "#b27820",
+          900: "#9f6818",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",

@@ -1,46 +1,22 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { 
-  Target, 
-  Eye, 
-  Heart, 
-  Users, 
-  Star,
+import {
+  Target,
+  Eye,
+  Heart,
+  Users,
   MessageCircle,
-  ArrowRight
+  ArrowRight,
 } from "lucide-react";
+
 import FAQ from "@/components/FAQ";
+import TestimonialSection from "@/components/TestimonialSection";
 import aboutTeamImage from "@/assets/logo-about-team.png";
 
 const About = () => {
-  
-
-  const testimonials = [
-    {
-      name: "Marie Nkounkou",
-      role: "Développeuse Web",
-      content: "Emploi+ m'a permis de trouver mon emploi actuel en moins d'un mois. L'interface est intuitive et les offres sont pertinentes.",
-      rating: 5
-    },
-    {
-      name: "Jean Mbemba",
-      role: "Directeur RH",
-      content: "Excellent outil pour recruter. Nous avons trouvé plusieurs talents qualifiés grâce à cette plateforme.",
-      rating: 5
-    },
-    {
-      name: "Sarah Loukabou",
-      role: "Designer Graphique",
-      content: "Les formations proposées sont de qualité et m'ont aidé à développer mes compétences. Je recommande !",
-      rating: 5
-    }
-  ];
-
   return (
     <div className="flex flex-col">
-      
-
       {/* Notre Histoire */}
       <section className="py-16 bg-gradient-to-br from-secondary/5 to-primary/5">
         <div className="container">
@@ -49,22 +25,32 @@ const About = () => {
               <h2 className="text-3xl font-bold">Notre histoire</h2>
               <div className="space-y-4 text-muted-foreground">
                 <p>
-                  Emploi+ est né de la volonté de révolutionner le marché de l'emploi en République du Congo et dans la sous-région. Face aux défis que rencontrent les candidats dans leur recherche d'opportunités et les entreprises dans leur quête de talents qualifiés, nous avons créé une solution innovante et adaptée aux réalités locales.
+                  Emploi+ est né de la volonté de révolutionner le marché de
+                  l'emploi en République du Congo et dans la sous-région. Face
+                  aux défis que rencontrent les candidats dans leur recherche
+                  d'opportunités et les entreprises dans leur quête de talents
+                  qualifiés, nous avons créé une solution innovante et adaptée
+                  aux réalités locales.
                 </p>
                 <p>
-                  Notre plateforme combine technologie moderne et connaissance approfondie du marché du travail congolais pour offrir une expérience unique tant aux chercheurs d'emploi qu'aux recruteurs.
+                  Notre plateforme combine technologie moderne et connaissance
+                  approfondie du marché du travail congolais pour offrir une
+                  expérience unique tant aux chercheurs d'emploi qu'aux
+                  recruteurs.
                 </p>
                 <p>
-                  Aujourd'hui, Emploi+ est la référence pour le recrutement et la formation professionnelle, avec des milliers d'utilisateurs actifs et des centaines d'entreprises partenaires.
+                  Aujourd'hui, Emploi+ est la référence pour le recrutement et la
+                  formation professionnelle, avec des milliers d'utilisateurs
+                  actifs et des centaines d'entreprises partenaires.
                 </p>
               </div>
             </div>
             <div className="relative">
-              <div className="aspect-[4/3] overflow-hidden rounded-2xl ">
+              <div className="aspect-[4/3] overflow-hidden rounded-2xl">
                 <img
                   src={aboutTeamImage}
                   alt="Équipe Emploi+"
-                  className="h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
               </div>
             </div>
@@ -82,7 +68,8 @@ const About = () => {
               </div>
               <h3 className="text-2xl font-bold">Notre Mission</h3>
               <p className="text-muted-foreground">
-                Faciliter l'accès à l'emploi et aux formations pour tous, tout en aidant les entreprises à trouver les meilleurs talents.
+                Faciliter l'accès à l'emploi et aux formations pour tous, tout
+                en aidant les entreprises à trouver les meilleurs talents.
               </p>
             </Card>
 
@@ -92,7 +79,8 @@ const About = () => {
               </div>
               <h3 className="text-2xl font-bold">Notre Vision</h3>
               <p className="text-muted-foreground">
-                Devenir la plateforme de référence pour l'emploi et la formation en Afrique centrale, reconnue pour son innovation et son impact.
+                Devenir la plateforme de référence pour l'emploi et la formation
+                en Afrique centrale, reconnue pour son innovation et son impact.
               </p>
             </Card>
 
@@ -102,53 +90,25 @@ const About = () => {
               </div>
               <h3 className="text-2xl font-bold">Nos Valeurs</h3>
               <p className="text-muted-foreground">
-                Excellence, intégrité, innovation et engagement envers le développement professionnel de notre communauté.
+                Excellence, intégrité, innovation et engagement envers le
+                développement professionnel de notre communauté.
               </p>
             </Card>
           </div>
         </div>
       </section>
-<hr />
-      {/* Testimonials */}
-      <section className="py-16 bg-background">
-        <div className="container">
-          <div className="text-center space-y-4 mb-12">
-            <h2 className="text-3xl font-bold">Ce que disent nos utilisateurs</h2>
-            <p className="text-muted-foreground">Des milliers de personnes nous font confiance</p>
-          </div>
+      
+      {/* Témoignages dynamiques */}
+      <TestimonialSection />
 
-          <div className="grid gap-6 md:grid-cols-3">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="p-6 space-y-4">
-                <div className="flex gap-1">
-                  {Array.from({ length: testimonial.rating }).map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-secondary text-secondary" />
-                  ))}
-                </div>
-                <p className="text-muted-foreground italic">"{testimonial.content}"</p>
-                <div className="pt-4 border-t">
-                  <p className="font-semibold">{testimonial.name}</p>
-                  <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-<hr />
-      {/* FAQ dynamique */}
+      {/* FAQ (si tu veux la garder sur la page À propos) */}
       <section className="py-16 bg-muted/30">
-        <div className="container max-w-3xl">
-          <div className="text-center space-y-4 mb-12">
-            <h2 className="text-3xl font-bold">Questions fréquentes</h2>
-            <p className="text-muted-foreground">Trouvez rapidement les réponses à vos questions</p>
-          </div>
-
+        <div className="container">
           <FAQ />
         </div>
       </section>
 
-      {/* Community */}
+      {/* Communauté */}
       <section className="py-16 bg-background">
         <div className="container">
           <Card className="p-12 text-center space-y-6 bg-gradient-to-br from-primary/5 to-secondary/5">
@@ -157,7 +117,8 @@ const About = () => {
             </div>
             <h2 className="text-3xl font-bold">Rejoignez notre communauté</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Suivez-nous sur les réseaux sociaux pour rester informé des dernières opportunités, conseils carrière et actualités.
+              Suivez-nous sur les réseaux sociaux pour rester informé des
+              dernières opportunités, conseils carrière et actualités.
             </p>
             <div className="flex gap-3 justify-center">
               <Button variant="outline" size="lg">
@@ -169,14 +130,15 @@ const About = () => {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Call to Action */}
       <section className="py-16 bg-gradient-primary">
         <div className="container text-center space-y-6">
           <h2 className="text-3xl font-bold text-primary-foreground">
             Prêt à commencer votre parcours ?
           </h2>
           <p className="text-lg text-primary-foreground/90 max-w-2xl mx-auto">
-            Rejoignez Emploi+ dès aujourd'hui et découvrez toutes les opportunités qui vous attendent.
+            Rejoignez Emploi+ dès aujourd'hui et découvrez toutes les
+            opportunités qui vous attendent.
           </p>
           <Button size="lg" asChild className="bg-secondary hover:bg-secondary/90">
             <Link to="/inscription">

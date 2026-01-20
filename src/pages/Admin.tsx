@@ -11,7 +11,16 @@ import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api"; // ← Nouveau fichier api.t;
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, Briefcase, BookOpen, Bell, Trash2 } from "lucide-react";
+import { Loader2, Briefcase, BookOpen, Bell, Trash2, BarChart3, DollarSign, MessageSquare, FileCheck, LogIn, ShoppingCart, AlertTriangle } from "lucide-react";
+import AdminDashboard from "@/components/admin/AdminDashboard";
+import UsersManagement from "@/components/admin/UsersManagement";
+import AnalyticsView from "@/components/admin/AnalyticsView";
+import FinancialAnalytics from "@/components/admin/FinancialAnalytics";
+import ModerateContent from "@/components/admin/ModerateContent";
+import CertificationValidation from "@/components/admin/CertificationValidation";
+import ImpersonateUser from "@/components/admin/ImpersonateUser";
+import { ServiceCatalogManager } from "@/components/admin/ServiceCatalogManager";
+import { SystemHealth } from "@/components/admin/SystemHealth";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -20,9 +29,9 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState(() => {
     try {
       const params = new URLSearchParams(window.location.search);
-      return params.get('tab') || 'offers';
+      return params.get('tab') || 'dashboard';
     } catch {
-      return 'offers';
+      return 'dashboard';
     }
   });
 
@@ -137,17 +146,67 @@ const Admin = () => {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-        <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 max-w-5xl mx-auto">
+          <TabsTrigger value="dashboard" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" /> Tableau de bord
+          </TabsTrigger>
+          <TabsTrigger value="users" className="flex items-center gap-2">
+            👥 Utilisateurs
+          </TabsTrigger>
           <TabsTrigger value="offers" className="flex items-center gap-2">
-            <Briefcase className="h-4 w-4" /> Offres d'emploi ({jobs.length})
+            <Briefcase className="h-4 w-4" /> Offres
           </TabsTrigger>
           <TabsTrigger value="formations" className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4" /> Formations ({formations.length})
+            <BookOpen className="h-4 w-4" /> Formations
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" /> Notifications
           </TabsTrigger>
+          <TabsTrigger value="applications" className="flex items-center gap-2">
+            📋 Candidatures
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            📊 Analytics
+          </TabsTrigger>
+          <TabsTrigger value="financial" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" /> Finance
+          </TabsTrigger>
+          <TabsTrigger value="moderation" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" /> Modération
+          </TabsTrigger>
+          <TabsTrigger value="certifications" className="flex items-center gap-2">
+            <FileCheck className="h-4 w-4" /> Certifications
+          </TabsTrigger>
+          <TabsTrigger value="impersonate" className="flex items-center gap-2">
+            <LogIn className="h-4 w-4" /> Login As
+          </TabsTrigger>
+          <TabsTrigger value="catalog" className="flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4" /> Catalogue & Promos
+          </TabsTrigger>
+          <TabsTrigger value="health" className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" /> Santé du Système
+          </TabsTrigger>
         </TabsList>
+
+        {/* === TABLEAU DE BORD === */}
+        <TabsContent value="dashboard" className="space-y-6">
+          <AdminDashboard />
+        </TabsContent>
+
+        {/* === GESTION UTILISATEURS === */}
+        <TabsContent value="users" className="space-y-6">
+          <UsersManagement />
+        </TabsContent>
+
+        {/* === ANALYTICS === */}
+        <TabsContent value="analytics" className="space-y-6">
+          <AnalyticsView />
+        </TabsContent>
+
+        {/* === ANALYTICS FINANCIERS === */}
+        <TabsContent value="financial" className="space-y-6">
+          <FinancialAnalytics />
+        </TabsContent>
 
         {/* === AJOUT OFFRE D'EMPLOI === */}
         <TabsContent value="offers" className="space-y-6">
@@ -301,6 +360,113 @@ const Admin = () => {
               </Button>
             </form>
           </Card>
+        </TabsContent>
+
+        {/* === CANDIDATURES === */}
+        <TabsContent value="applications" className="space-y-6">
+          <Card className="p-8 shadow-lg">
+            <h2 className="text-2xl font-bold mb-6">Supervision des candidatures</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <Card className="p-4 bg-blue-50">
+                <div className="text-sm text-muted-foreground">Total candidatures</div>
+                <div className="text-2xl font-bold text-blue-600">{stats.applications || 0}</div>
+              </Card>
+              <Card className="p-4 bg-green-50">
+                <div className="text-sm text-muted-foreground">Acceptées</div>
+                <div className="text-2xl font-bold text-green-600">-</div>
+              </Card>
+              <Card className="p-4 bg-yellow-50">
+                <div className="text-sm text-muted-foreground">En attente</div>
+                <div className="text-2xl font-bold text-yellow-600">-</div>
+              </Card>
+              <Card className="p-4 bg-red-50">
+                <div className="text-sm text-muted-foreground">Rejetées</div>
+                <div className="text-2xl font-bold text-red-600">-</div>
+              </Card>
+            </div>
+            <p className="text-sm text-muted-foreground">Consultez la page des détails pour voir toutes les candidatures et gérer les statuts</p>
+            <Button onClick={() => navigate('/admin/applications')} className="mt-4">
+              Voir toutes les candidatures
+            </Button>
+          </Card>
+        </TabsContent>
+
+        {/* === CONTENU (Publications, Portfolios) === */}
+        <TabsContent value="content" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="p-8 shadow-lg">
+              <h2 className="text-2xl font-bold mb-6">📊 Statistiques de contenu</h2>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 border rounded">
+                  <span className="text-muted-foreground">Publications totales</span>
+                  <span className="font-bold text-lg">-</span>
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded">
+                  <span className="text-muted-foreground">Portfolios (réalisations)</span>
+                  <span className="font-bold text-lg">-</span>
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded">
+                  <span className="text-muted-foreground">Formations publiées</span>
+                  <span className="font-bold text-lg">{formations.length}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded">
+                  <span className="text-muted-foreground">Offres d'emploi</span>
+                  <span className="font-bold text-lg">{jobs.length}</span>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-8 shadow-lg">
+              <h2 className="text-2xl font-bold mb-6">🎯 Actions rapides</h2>
+              <div className="space-y-3">
+                <Button className="w-full" onClick={() => navigate('/admin/publications')}>
+                  📝 Gérer publications
+                </Button>
+                <Button className="w-full" onClick={() => navigate('/admin/portfolios')}>
+                  🎨 Gérer portfolios
+                </Button>
+                <Button className="w-full" onClick={() => navigate('/admin/services')}>
+                  💼 Gérer services
+                </Button>
+                <Button className="w-full variant-outline" onClick={() => navigate('/admin/categories')}>
+                  🏷️ Gérer catégories
+                </Button>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-8 shadow-lg">
+            <h2 className="text-2xl font-bold mb-6">📋 Contenu modéré</h2>
+            <p className="text-sm text-muted-foreground mb-4">Manage and moderate all user-generated content across the platform</p>
+            <Button onClick={() => navigate('/admin/moderation')} className="w-full">
+              Accéder à la modération
+            </Button>
+          </Card>
+        </TabsContent>
+
+        {/* === MODÉRATION DU FIL D'ACTUALITÉ === */}
+        <TabsContent value="moderation" className="space-y-6">
+          <ModerateContent />
+        </TabsContent>
+
+        {/* === VALIDATION DES CERTIFICATIONS === */}
+        <TabsContent value="certifications" className="space-y-6">
+          <CertificationValidation />
+        </TabsContent>
+
+        {/* === IMPERSONNALISATION === */}
+        <TabsContent value="impersonate" className="space-y-6">
+          <ImpersonateUser />
+        </TabsContent>
+
+        {/* === GESTION CATALOGUE ET CODES PROMOS === */}
+        <TabsContent value="catalog" className="space-y-6">
+          <ServiceCatalogManager />
+        </TabsContent>
+
+        {/* === SANTÉ DU SYSTÈME === */}
+        <TabsContent value="health" className="space-y-6">
+          <SystemHealth />
         </TabsContent>
       </Tabs>
     </div>

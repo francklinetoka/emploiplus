@@ -1,12 +1,26 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Briefcase, Users, Award, TrendingUp, Building2, GraduationCap, ArrowRight } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 import HeroBanner from "@/components/HeroBanner";
 import Realizations from "@/components/Realizations";
 import Publications from "@/components/Publications";
+import DashboardNewsfeed from "@/components/DashboardNewsfeed";
 
 const Home = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // If user is logged in, redirect to newsfeed
+  useEffect(() => {
+    if (user) {
+      navigate('/fil-actualite', { replace: true });
+    }
+  }, [user, navigate]);
+
+  // Otherwise, show standard home page
   return (
     <div className="flex flex-col">
       <HeroBanner />

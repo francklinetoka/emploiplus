@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
-import { Loader2, ChevronDown } from "lucide-react";
+import { Loader2, ChevronDown, TrendingUp, CheckCircle2, Zap } from "lucide-react";
 import { authHeaders } from '@/lib/headers';
 import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
@@ -174,12 +174,13 @@ export default function Dashboard() {
       </Card>
 
       {/* SECTION 2: Profile completeness with expandable details */}
-      <Card className="p-4 mb-6">
+      <Card className="p-6 mb-6 border-l-4 border-l-blue-500">
         <div className="flex flex-col gap-4">
+          {/* Titre et bouton */}
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm text-muted-foreground">Score de profil</div>
-              <div className="text-lg font-semibold">Votre profil est complété à {completeness.percent}%</div>
+              <div className="text-sm text-muted-foreground font-medium">Score de profil</div>
+              <div className="text-2xl font-bold">Votre profil est complété à <span className="text-blue-600">{completeness.percent}%</span></div>
             </div>
             <button
               onClick={() => setShowCompletenessDetails(!showCompletenessDetails)}
@@ -192,43 +193,57 @@ export default function Dashboard() {
               />
             </button>
           </div>
-          <div>
-            <Progress value={completeness.percent} />
+
+          {/* Barre de progression réduite */}
+          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
+              style={{ width: `${completeness.percent}%` }}
+            />
           </div>
+
+          {/* Messages d'encouragement */}
+          {completeness.percent >= 50 && completeness.percent < 65 && (
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-700 font-medium">💡 Vous y êtes presque ! Il ne reste que quelques informations à compléter pour optimiser votre profil.</p>
+            </div>
+          )}
+
+          {completeness.percent >= 75 && completeness.percent < 100 && (
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-700 font-medium">🚀 Vous y êtes presque ! Finalisez votre profil pour atteindre la perfection !</p>
+            </div>
+          )}
+
+          {completeness.percent === 100 && (
+            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 rounded-lg animate-pulse">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl animate-bounce">🎉</span>
+                <p className="text-lg font-bold text-green-700">Félicitations !</p>
+              </div>
+              <p className="text-sm text-green-700">Votre profil est 100% complet. Vous êtes prêt(e) à conquérir le marché du travail !</p>
+            </div>
+          )}
 
           {/* Expandable details section */}
           {showCompletenessDetails && (
             <div className="border-t pt-4 mt-4">
-              <h4 className="font-semibold mb-3">Détails de complétude</h4>
+              <h4 className="font-semibold mb-3 text-lg">Détails de complétude</h4>
               
-              {/* Filled fields */}
-              {completeness.missing.length < 
-                (userRole === 'candidate' 
-                  ? 12 
-                  : 8) && (
-                <div className="mb-4">
-                  <h5 className="text-sm font-medium text-green-700 mb-2">✅ Éléments remplis ({Math.round(completeness.percent)}%)</h5>
-                  <div className="text-sm text-gray-600">
-                    {userRole === 'candidate' ? (
-                      <p>Vous avez complété la plupart de votre profil. Continuez en remplissant les informations manquantes ci-dessous.</p>
-                    ) : (
-                      <p>Votre profil entreprise est bien avancé. Complétez les informations manquantes ci-dessous.</p>
-                    )}
-                  </div>
-                </div>
-              )}
-
               {/* Missing fields with suggestions */}
               {completeness.missing.length > 0 && (
                 <div>
-                  <h5 className="text-sm font-medium text-orange-700 mb-3">⚠️ Éléments manquants ({completeness.missing.length})</h5>
+                  <h5 className="text-sm font-medium text-orange-700 mb-3 flex items-center gap-2">
+                    <Zap size={16} /> Éléments manquants ({completeness.missing.length})
+                  </h5>
                   <div className="space-y-2">
                     {completeness.missing.map((missing, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
+                      <div key={idx} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200 hover:bg-orange-100 transition">
                         <span className="text-sm text-gray-700 capitalize">{missing}</span>
                         <Button 
                           size="sm" 
                           variant="outline"
+                          className="bg-orange-100 hover:bg-orange-200 border-orange-300"
                           onClick={() => {
                             // Mapping des éléments manquants aux bonnes pages/sections
                             const missingLower = missing.toLowerCase();
@@ -265,8 +280,9 @@ export default function Dashboard() {
               )}
 
               {completeness.percent === 100 && (
-                <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm text-green-700 font-medium">🎉 Votre profil est 100% complet !</p>
+                <div className="p-3 bg-green-50 rounded-lg border border-green-300 flex items-center gap-2">
+                  <CheckCircle2 size={20} className="text-green-600" />
+                  <p className="text-sm text-green-700 font-medium">Votre profil est 100% complet !</p>
                 </div>
               )}
             </div>
@@ -274,76 +290,155 @@ export default function Dashboard() {
         </div>
       </Card>
 
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold mb-6">Tableau de bord</h1>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-4xl font-bold">Tableau de bord</h1>
+          <p className="text-muted-foreground mt-1">Vue d'ensemble de votre profil et vos statistiques</p>
+        </div>
         <div className="space-x-2">
-          <Button asChild>
-            <Link to="/parametres">Gérer mon compte</Link>
+          <Button asChild className="bg-blue-600 hover:bg-blue-700">
+            <Link to="/parametres">⚙️ Gérer mon compte</Link>
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Résumé des paramètres */}
         {showCard('Profil') && (
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Profil</h3>
-            <p className="text-muted-foreground mb-3">{userRole === 'company' ? (profileData?.company_name || user?.company_name || '—') : (user?.full_name || '—')}</p>
-            <div className="text-sm">Type de compte: <strong>{String(user?.user_type || '—')}</strong></div>
-            <div className="text-sm">Certifié: <strong>{user?.is_verified ? 'Oui' : 'Non'}</strong></div>
+          <Card className="p-6 border-l-4 border-l-blue-500 hover:shadow-lg transition">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Profil</h3>
+                <p className="text-lg font-bold truncate">{userRole === 'company' ? (profileData?.company_name || user?.company_name || '—') : (user?.full_name || '—')}</p>
+                <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                  <div>Type: <span className="font-semibold text-gray-700">{userRole === 'company' ? 'Entreprise' : 'Candidat'}</span></div>
+                  <div>Statut: <span className={`font-semibold ${user?.is_verified ? 'text-green-600' : 'text-orange-600'}`}>{user?.is_verified ? '✓ Certifié' : '⊘ Non certifié'}</span></div>
+                </div>
+              </div>
+              <div className="text-2xl">{userRole === 'company' ? '🏢' : '👤'}</div>
+            </div>
           </Card>
         )}
 
+        {/* Documents */}
         {showCard('Documents') && (
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Documents</h3>
-            <p className="text-muted-foreground">CVs, lettres et pièces téléchargées</p>
-            <div className="mt-4 text-3xl font-bold">{docsCount ?? '—'}</div>
-            <div className="mt-3">
-              <Button asChild>
-                <Link to="/documents">Gérer mes documents</Link>
-              </Button>
+          <Card className="p-6 border-l-4 border-l-green-500 hover:shadow-lg transition">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Documents</h3>
+                <div className="text-4xl font-bold text-green-600">{docsCount ?? '—'}</div>
+                <p className="text-xs text-muted-foreground mt-2">fichiers téléchargés</p>
+              </div>
+              <div className="text-3xl">📄</div>
             </div>
           </Card>
         )}
 
+        {/* Compétences */}
         {showCard('Compétences') && (
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Compétences</h3>
-            <p className="text-muted-foreground">Vos compétences et recommandations</p>
-            <div className="mt-4 text-3xl font-bold">{skillsCount ?? '—'}</div>
-            <div className="mt-3">
-              <Button asChild>
-                <Link to="/parametres/recommandations">Gérer mes compétences</Link>
-              </Button>
+          <Card className="p-6 border-l-4 border-l-purple-500 hover:shadow-lg transition">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Compétences</h3>
+                <div className="text-4xl font-bold text-purple-600">{skillsCount ?? '—'}</div>
+                <p className="text-xs text-muted-foreground mt-2">compétences listées</p>
+              </div>
+              <div className="text-3xl">⭐</div>
             </div>
           </Card>
         )}
 
+        {/* Candidatures (Candidats) */}
         {showCard('Candidatures') && userRole === 'candidate' && (
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Candidatures</h3>
-            <p className="text-muted-foreground">Offres d'emploi auxquelles vous avez postulé</p>
-            <div className="mt-4 text-3xl font-bold">{applicationsCount ?? '—'}</div>
-            <div className="mt-3">
-              <Button asChild>
-                <Link to="/emplois">Voir les offres</Link>
+          <Card className="p-6 border-l-4 border-l-orange-500 hover:shadow-lg transition">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Candidatures</h3>
+                <div className="text-4xl font-bold text-orange-600">{applicationsCount ?? '—'}</div>
+                <p className="text-xs text-muted-foreground mt-2">offres candidates</p>
+              </div>
+              <div className="text-3xl">📨</div>
+            </div>
+          </Card>
+        )}
+
+        {/* Offres publiées (Entreprises) */}
+        {showCard('Offres') && userRole === 'company' && (
+          <Card className="p-6 border-l-4 border-l-red-500 hover:shadow-lg transition">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Offres publiées</h3>
+                <div className="text-4xl font-bold text-red-600">{jobsPostedCount ?? '—'}</div>
+                <p className="text-xs text-muted-foreground mt-2">offres créées</p>
+              </div>
+              <div className="text-3xl">📢</div>
+            </div>
+          </Card>
+        )}
+      </div>
+
+      {/* Actions rapides et suggestions */}
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Suggestions pour candidat */}
+        {userRole === 'candidate' && (
+          <Card className="p-6 lg:col-span-2">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <Zap size={20} /> Suggestions pour vous
+            </h3>
+            <div className="space-y-3">
+              <Button asChild variant="outline" className="w-full justify-start">
+                <Link to="/emplois">🔍 Découvrir les offres d'emploi</Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start">
+                <Link to="/parametres/profil">✏️ Mettre à jour votre profil</Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start">
+                <Link to="/documents">📁 Gérer vos documents</Link>
               </Button>
             </div>
           </Card>
         )}
 
-        {showCard('Offres') && userRole === 'company' && (
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Offres publiées</h3>
-            <p className="text-muted-foreground">Offres d'emploi que vous avez créées</p>
-            <div className="mt-4 text-3xl font-bold">{jobsPostedCount ?? '—'}</div>
-            <div className="mt-3">
-              <Button asChild>
-                <Link to="/mes-offres">Gérer les offres</Link>
+        {/* Suggestions pour entreprise */}
+        {userRole === 'company' && (
+          <Card className="p-6 lg:col-span-2">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <TrendingUp size={20} /> Actions rapides
+            </h3>
+            <div className="space-y-3">
+              <Button asChild variant="outline" className="w-full justify-start">
+                <Link to="/recrutement">➕ Publier une nouvelle offre</Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start">
+                <Link to="/candidats">👥 Voir les candidats</Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start">
+                <Link to="/parametres/profil">🏢 Mettre à jour le profil entreprise</Link>
               </Button>
             </div>
           </Card>
         )}
+
+        {/* Dernier statut */}
+        <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50">
+          <h3 className="text-lg font-bold mb-3">📊 Statut du compte</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Complétude:</span>
+              <span className="font-semibold text-blue-600">{completeness.percent}%</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Vérification:</span>
+              <span className={`font-semibold ${user?.is_verified ? 'text-green-600' : 'text-orange-600'}`}>
+                {user?.is_verified ? 'Certifié ✓' : 'En attente'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Création compte:</span>
+              <span className="font-semibold">{new Date(user?.created_at as string).toLocaleDateString('fr-FR')}</span>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );

@@ -25,11 +25,11 @@ interface LetterData {
 }
 
 const DEMO_TEMPLATES = [
-  { id: "white", name: "Blanc", color: "from-gray-50 to-white" },
-  { id: "blue", name: "Bleu", color: "from-blue-500 to-blue-700" },
-  { id: "orange", name: "Orange", color: "from-orange-500 to-orange-700" },
-  { id: "red", name: "Rouge", color: "from-red-500 to-red-700" },
-  { id: "yellow", name: "Jaune", color: "from-yellow-500 to-yellow-600" },
+  { id: "white", name: "Classique Blanc", color: "from-gray-50 to-white", icon: "📄", desc: "Simplicité et professionnel" },
+  { id: "blue", name: "Bleu Professionnel", color: "from-blue-500 to-blue-700", icon: "💼", desc: "Modern et confiant" },
+  { id: "orange", name: "Orange Dynamique", color: "from-orange-500 to-orange-700", icon: "⚡", desc: "Énergique et créatif" },
+  { id: "red", name: "Rouge Impactant", color: "from-red-500 to-red-700", icon: "❤️", desc: "Affirmer votre passion" },
+  { id: "yellow", name: "Jaune Optimiste", color: "from-yellow-500 to-yellow-600", icon: "✨", desc: "Chaleureux et optimiste" },
 ];
 
 export default function LetterGenerator() {
@@ -296,27 +296,37 @@ export default function LetterGenerator() {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             {/* Créer nouvelle lettre */}
-            <Card className="p-6 mb-6">
-              <h3 className="font-bold mb-4">Créer une nouvelle lettre</h3>
-              <div className="space-y-3">
+            <Card className="p-6 mb-6 border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-lg">Mes Modèles de Lettre</h3>
+                <span className="text-2xl">✉️</span>
+              </div>
+              <div className="space-y-2 mb-4">
                 {DEMO_TEMPLATES.filter((t) => {
-                  // Show first 3 (white, blue, orange) for guests, all 5 for logged-in users
                   if (isLoggedIn) return true;
                   return ["white", "blue", "orange"].includes(t.id);
-                }).map((template) => (
-                  <Button
+                }).map((template: any) => (
+                  <div
                     key={template.id}
-                    variant="outline"
-                    className="w-full justify-start"
+                    className="p-3 border border-primary/10 rounded-lg hover:border-primary/50 hover:bg-primary/5 transition cursor-pointer group"
                     onClick={() =>
                       createNewLetter(template.id as "white" | "blue" | "orange" | "red" | "yellow")
                     }
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {template.name}
-                  </Button>
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl group-hover:scale-110 transition">{template.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm group-hover:text-primary transition">{template.name}</p>
+                        <p className="text-xs text-muted-foreground">{template.desc}</p>
+                      </div>
+                      <Plus className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition" />
+                    </div>
+                  </div>
                 ))}
               </div>
+              <Button asChild variant="outline" className="w-full border-primary/30 hover:border-primary">
+                <a href="/letter-modeles">Voir tous les modèles →</a>
+              </Button>
             </Card>
 
             {/* Mes lettres */}

@@ -1,17 +1,33 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import SearchBar from '@/components/SearchBar';
+import GlobalSearchDropdown from '@/components/GlobalSearchDropdown';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
 import { authHeaders } from '@/lib/headers';
-import { Menu, X, Briefcase, User, LogOut, Settings, Bell } from "lucide-react";
+import { Menu, X, Briefcase, User, LogOut, Settings, Bell, Search, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useMessaging } from "@/hooks/useMessaging";
+import NotificationDropdown from '@/components/NotificationDropdown';
 
 interface UserProfile {
   id?: number;
   full_name?: string;
+  company_name?: string;
   profile_image_url?: string;
+  user_type?: string;
+}
+
+interface Notification {
+  id: number;
+  read: boolean;
+}
+
+interface NavLink {
+  path: string;
+  label: string;
+  children?: NavLink[];
 }
 
 const AccountQuickMenu = () => {
@@ -49,12 +65,15 @@ const AccountQuickMenu = () => {
     navigate('/');
   };
 
-  const initials = (profileData?.full_name || user.email)
+  const isCompany = String(profileData?.user_type).toLowerCase() === 'company';
+  const displayName = isCompany ? profileData?.company_name : profileData?.full_name;
+  
+  const initials = (displayName || user.email)
     .split(' ')
     .map((n) => n[0])
     .join('')
     .toUpperCase()
-    .slice(0, 2);
+    .slice(0, isCompany ? 2 : 2);
 
   return (
     <div className="relative ml-3">
@@ -64,12 +83,17 @@ const AccountQuickMenu = () => {
         aria-label="Menu compte"
       >
         <Avatar className="h-9 w-9">
-          <AvatarImage src={profileData?.profile_image_url || undefined} alt={profileData?.full_name} />
-          <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
+          <AvatarImage src={profileData?.profile_image_url || undefined} alt={displayName} />
+          <AvatarFallback className={`text-xs font-semibold ${isCompany ? 'bg-primary/10 text-primary' : ''}`}>{initials}</AvatarFallback>
         </Avatar>
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-48 rounded-md border bg-background shadow-lg z-50">
+          {isCompany && (
+            <Link to="/parametres/profil-entreprise" className="flex items-center px-3 py-2 text-sm hover:bg-muted/50 transition-colors border-b" onClick={() => setOpen(false)}>
+              <Settings className="h-4 w-4 mr-2" /> Mon profil entreprise
+            </Link>
+          )}
           <Link to="/parametres" className="flex items-center px-3 py-2 text-sm hover:bg-muted/50 transition-colors" onClick={() => setOpen(false)}>
             <Settings className="h-4 w-4 mr-2" /> Paramètres
           </Link>
@@ -94,8 +118,11 @@ const Header = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
   const { user, signOut } = useAuth();
   const { role } = useUserRole(user);
+  const { unreadCount: messageUnreadCount } = useMessaging();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -108,9 +135,9 @@ const Header = () => {
         Object.assign(headers, authHeaders());
         const res = await fetch('/api/notifications', { headers });
         if (!res.ok) return;
-        const data = await res.json();
+        const data = await res.json() as Notification[];
         if (!mounted) return;
-        const count = (data || []).filter((n: any) => !n.read).length;
+        const count = (data || []).filter((n: Notification) => !n.read).length;
         setUnreadCount(count);
       } catch (e) {
         console.error('Fetch notifications count error', e);
@@ -138,7 +165,7 @@ const Header = () => {
     window.addEventListener('notifications-updated', onUpdated);
 
     return () => { mounted = false; clearInterval(iv); window.removeEventListener('notifications-updated', onUpdated); };
-  }, [user]);
+  }, [user, location.pathname]);
 
     // Minimal header for auth pages
     if (path === '/connexion' || path === '/inscription' || path === '/register' || path === '/login') {
@@ -173,7 +200,7 @@ const Header = () => {
       { path: "/", label: "Accueil" },
       { path: "/emplois", label: "Emplois" },
       { path: "/services", label: "Services" },
-      { path: "/resources", label: "Ressources", children: [ { path: '/annuaire', label: 'Annuaire' }, { path: '/documents', label: 'Documents' } ] },
+      { path: "/resources", label: "Ressources", children: [ { path: '/annuaire', label: 'Annuaire' }, { path: '/documents', label: 'Documentation' } ] },
       { path: "/formations", label: "Formations" },
       { path: "/a-propos", label: "À propos" },
       { path: "/contact", label: "Contact" },
@@ -184,23 +211,37 @@ const Header = () => {
 
     // For authenticated users we remove About/Contact from the main nav (they will be in profile menu)
     const filtered = base.filter((l) => l.path !== '/a-propos' && l.path !== '/contact');
+    
+    // For candidates, show only newsfeed (not both newsfeed and accueil)
+    if (role === 'candidate') {
+      return [
+        { path: "/fil-actualite", label: "Fil d'actualité" },
+        { path: "/connexions", label: "Connexions" },
+        { path: "/emplois", label: "Emplois" },
+        { path: "/services", label: "Services" },
+        { path: "/resources", label: "Ressources", children: [ { path: '/annuaire', label: 'Annuaire' }, { path: '/documents', label: 'Documents' } ] },
+        { path: "/formations", label: "Formations" },
+      ];
+    }
 
-    // For candidates, show filtered base
-    if (role === 'candidate') return filtered;
-
-    // For companies, use custom order: Accueil, Service, Recrutement, Candidats
+    // For companies, use custom order: Fil d'actualité, Service, Recrutement, Candidats
     if (role === 'company') {
       return [
-        { path: "/", label: "Accueil" },
+        { path: "/fil-actualite", label: "Fil d'actualité" },
+        { path: "/connexions", label: "Connexions" },
         { path: "/services", label: "Service" },
         { path: "/recrutement", label: "Recrutement" },
         { path: "/candidats", label: "Candidats" },
       ];
     }
 
-    // Admin roles: keep admin entry then base links
+    // Admin roles: keep admin entry then newsfeed
     if (role === 'super_admin' || role === 'admin_offers' || role === 'admin_users') {
-      return [{ path: "/admin", label: "Admin" }, ...filtered];
+      return [
+        { path: "/admin", label: "Admin" },
+        { path: "/fil-actualite", label: "Fil d'actualité" },
+        ...filtered
+      ];
     }
 
     return base;
@@ -219,7 +260,7 @@ const Header = () => {
               <img src="/Logo.png" alt="Logo Emploi+" />
             </div>
           </Link>
-          <span className="text-xl font-bold text-primary ml-2">Emploi+</span>
+         
         </div>
 
 
@@ -229,34 +270,48 @@ const Header = () => {
             if (!user && link.path === '/resources') return null;
             if (link.path === '/services') {
               return (
-                <div key={link.path} className="relative group">
+                <div 
+                  key={link.path} 
+                  className="relative"
+                  onMouseEnter={() => setOpenMenu('services')}
+                  onMouseLeave={() => setOpenMenu(null)}
+                >
                   <Link to="/services" className={`text-sm font-medium transition-colors px-2 py-1 rounded ${isActive('/services') ? 'text-primary' : 'text-muted-foreground'} `}>{link.label}</Link>
-                  <div className="absolute left-0 mt-2 w-64 rounded-md border bg-white shadow-lg z-50 hidden group-hover:block">
-                    <div className="flex flex-col p-2 space-y-1">
-                     <a href="/services#optimisation-candidature" className="px-3 py-2 text-sm rounded hover:bg-gray-50">Optimisation Candidature</a>
-                     <a href="/services#Entretiens-preparation" className="px-3 py-2 text-sm rounded hover:bg-gray-50">Entretiens</a>
-                      <a href="/services#creation-visuelle" className="px-3 py-2 text-sm rounded hover:bg-gray-50">créations visuelles</a>
-                      <a href="/services#numeriques" className="px-3 py-2 text-sm rounded hover:bg-gray-50">Services Numériques</a>
-                      <div className="border-t my-1" />
-                      <a href="/contact" className="px-3 py-2 text-sm rounded hover:bg-gray-50">Assistance par experts</a>
+                  {openMenu === 'services' && (
+                    <div className="absolute left-0 mt-2 w-64 rounded-md border bg-white shadow-lg z-50">
+                      <div className="flex flex-col p-2 space-y-1">
+                       <a href="/services#optimisation-candidature" className="px-3 py-2 text-sm rounded hover:bg-gray-50">Optimisation Candidature</a>
+                       <a href="/services#Entretiens-preparation" className="px-3 py-2 text-sm rounded hover:bg-gray-50">Entretiens</a>
+                        <a href="/services#creation-visuelle" className="px-3 py-2 text-sm rounded hover:bg-gray-50">créations visuelles</a>
+                        <a href="/services#numeriques" className="px-3 py-2 text-sm rounded hover:bg-gray-50">Services Numériques</a>
+                        <div className="border-t my-1" />
+                        <a href="/contact" className="px-3 py-2 text-sm rounded hover:bg-gray-50">Assistance par experts</a>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             }
-            if ((link as any).children) {
+            if ((link as NavLink & { children?: NavLink[] }).children) {
               return (
-                <div key={link.path} className="relative group">
+                <div 
+                  key={link.path} 
+                  className="relative"
+                  onMouseEnter={() => setOpenMenu(link.label)}
+                  onMouseLeave={() => setOpenMenu(null)}
+                >
                   <button className={`text-sm font-medium transition-colors px-2 py-1 rounded ${isActive(link.path) ? 'text-primary' : 'text-muted-foreground'}`}>
                     {link.label}
                   </button>
-                  <div className="absolute left-0 mt-2 w-44 rounded-md border bg-white shadow-lg z-50 hidden group-hover:block">
-                    <div className="flex flex-col p-2 space-y-1">
-                      {((link as any).children || []).map((c: any) => (
-                        <Link key={c.path} to={c.path} className="px-3 py-2 text-sm rounded hover:bg-gray-50">{c.label}</Link>
-                      ))}
+                  {openMenu === link.label && (
+                    <div className="absolute left-0 mt-2 w-44 rounded-md border bg-white shadow-lg z-50">
+                      <div className="flex flex-col p-2 space-y-1">
+                        {((link as NavLink & { children?: NavLink[] }).children || []).map((c: NavLink) => (
+                          <Link key={c.path} to={c.path} className="px-3 py-2 text-sm rounded hover:bg-gray-50">{c.label}</Link>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             }
@@ -276,13 +331,22 @@ const Header = () => {
 
         {/* Global search (desktop) - visible only after login */}
         {user && (
-          <div className="hidden md:flex items-center ml-4">
-            <form onSubmit={(e) => { e.preventDefault(); performSearch(); }} className="flex items-center gap-2">
-              <div className="w-64">
-                <SearchBar value={globalSearch} onChange={setGlobalSearch} placeholder={role === 'company' ? 'Rechercher candidatures, candidats...' : 'Rechercher emplois, services, formations...'} />
-              </div>
-              <Button type="submit">Rechercher</Button>
-            </form>
+          <div className="hidden md:flex items-center ml-4 w-96">
+            {searchOpen ? (
+              <GlobalSearchDropdown 
+                className="w-full"
+              />
+            ) : (
+              <Button variant="ghost" size="icon" onClick={() => setSearchOpen(true)} className="w-full justify-start text-slate-500">
+                <Search className="h-4 w-4 mr-2" />
+                Rechercher
+              </Button>
+            )}
+            {searchOpen && (
+              <Button type="button" variant="ghost" size="icon" onClick={() => { setSearchOpen(false); setGlobalSearch(''); }}>
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         )}
 
@@ -290,16 +354,19 @@ const Header = () => {
         <div className="hidden items-center space-x-3 md:flex">
           {user ? (
             <>
-              <div className="relative">
-                <Button variant="ghost" asChild>
-                  <Link to="/notifications" aria-label="Notifications">
-                    <Bell className="h-5 w-5" />
-                  </Link>
-                </Button>
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-semibold leading-none text-white bg-destructive rounded-full">{unreadCount}</span>
+              <NotificationDropdown />
+              <Link 
+                to="/messages" 
+                className="relative p-2 text-muted-foreground hover:text-primary transition-colors"
+                title="Messagerie"
+              >
+                <MessageCircle size={20} />
+                {messageUnreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {messageUnreadCount > 9 ? '9+' : messageUnreadCount}
+                  </span>
                 )}
-              </div>
+              </Link>
               <AccountQuickMenu />
             </>
           ) : (
@@ -336,16 +403,16 @@ const Header = () => {
               <div className="px-2">
                 <SearchBar value={globalSearch} onChange={setGlobalSearch} placeholder={role === 'company' ? 'Rechercher candidatures...' : 'Rechercher emplois, services...'} />
                 <div className="mt-2 flex gap-2">
-                  <Button onClick={() => performSearch()} size="sm">Rechercher</Button>
+                  <Button onClick={() => performSearch()} size="sm"><Search className="h-4 w-4" /></Button>
                 </div>
               </div>
             )}
             {navLinks.map((link) => {
-              if ((link as any).children) {
+              if ((link as NavLink & { children?: NavLink[] }).children) {
                 return (
                   <div key={link.path} className="space-y-1">
                     <div className="py-2 text-sm font-medium text-muted-foreground">{link.label}</div>
-                    {((link as any).children || []).map((c: any) => (
+                    {((link as NavLink & { children?: NavLink[] }).children || []).map((c: NavLink) => (
                       <Link key={c.path} to={c.path} className="block py-2 pl-4 text-sm font-medium transition-colors text-muted-foreground hover:text-primary" onClick={() => setMobileMenuOpen(false)}>{c.label}</Link>
                     ))}
                   </div>
@@ -391,11 +458,6 @@ const Header = () => {
                   <Button asChild className="bg-gradient-primary hover:opacity-90">
                     <Link to="/inscription" onClick={() => setMobileMenuOpen(false)}>
                       Inscription
-                    </Link>
-                  </Button>
-                  <Button variant="outline" asChild>
-                    <Link to="/admin/login" onClick={() => setMobileMenuOpen(false)}>
-                      Connexion Admin
                     </Link>
                   </Button>
                 </>

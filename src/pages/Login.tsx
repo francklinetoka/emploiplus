@@ -8,6 +8,8 @@ import { Card } from "@/components/ui/card";
 import { Briefcase, Mail, Lock } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { AuthHeader } from "@/components/auth/AuthHeader";
+import { AuthFooter } from "@/components/auth/AuthFooter";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -45,8 +47,11 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 py-12 px-4">
-      <Card className="w-full max-w-md p-8 space-y-6">
+    <div className="flex flex-col min-h-screen">
+      <AuthHeader />
+      
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 py-12 px-4">
+        <Card className="w-full max-w-md p-8 space-y-6">
         {/* Logo & Title */}
         <div className="text-center space-y-2">
           <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 mx-auto">
@@ -138,6 +143,9 @@ const Login = () => {
           </Button>
         </div>
       </Card>
+      </div>
+      
+      <AuthFooter />
     </div>
   );
 };

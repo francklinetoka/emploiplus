@@ -8,7 +8,7 @@ import { uploadFile } from "@/lib/upload";
 import { useAuth } from "@/hooks/useAuth";
 import { authHeaders } from '@/lib/headers';
 import { toast } from "sonner";
-import { Loader2, Upload, FileText } from "lucide-react";
+import { Loader2, Upload, FileText, AlertCircle } from "lucide-react";
 
 export default function ApplyJob() {
   const { id } = useParams();
@@ -16,6 +16,7 @@ export default function ApplyJob() {
   const { user } = useAuth();
   const [job, setJob] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
+  const [alreadyApplied, setAlreadyApplied] = useState(false);
 
   const [docs, setDocs] = useState<any[]>([]); // user's saved documents
 
@@ -27,7 +28,10 @@ export default function ApplyJob() {
   useEffect(() => {
     if (!id) return;
     fetchJob();
-    if (user) fetchUserDocs();
+    if (user) {
+      fetchUserDocs();
+      checkIfAlreadyApplied();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user]);
 
@@ -66,6 +70,20 @@ export default function ApplyJob() {
       toast.error('Impossible de charger l\'offre');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function checkIfAlreadyApplied() {
+    try {
+      const res = await fetch(`/api/job-applications/check/${id}`, {
+        headers: authHeaders('')
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAlreadyApplied(data.alreadyApplied);
+      }
+    } catch (e) {
+      console.error('Error checking application status:', e);
     }
   }
 
@@ -172,6 +190,21 @@ export default function ApplyJob() {
         <div className="bg-white rounded-lg shadow p-8 max-w-md w-full text-center">
           <h2 className="text-xl font-bold mb-3">Date limite dépassée</h2>
           <p className="text-sm text-muted-foreground mb-4">La date limite pour cette offre est passée. Vous ne pouvez plus postuler pour cette offre.</p>
+          <div className="flex gap-3 justify-center">
+            <a href="/emplois" className="px-5 py-3 bg-primary text-white rounded-lg">Retour aux offres</a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (alreadyApplied) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="bg-white rounded-lg shadow p-8 max-w-md w-full text-center">
+          <AlertCircle className="h-12 w-12 text-orange-600 mx-auto mb-4" />
+          <h2 className="text-xl font-bold mb-3">Déjà postulé</h2>
+          <p className="text-sm text-muted-foreground mb-4">Vous avez déjà postulé pour cette offre. Vous ne pouvez poser votre candidature qu'une seule fois par offre d'emploi.</p>
           <div className="flex gap-3 justify-center">
             <a href="/emplois" className="px-5 py-3 bg-primary text-white rounded-lg">Retour aux offres</a>
           </div>

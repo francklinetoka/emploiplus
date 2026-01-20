@@ -16,6 +16,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import AdminDashboard from "@/components/admin/AdminDashboard";
 
 interface Stats {
   jobs: number;
@@ -29,6 +30,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Stats>({ jobs: 0, formations: 0, admins: 0, users: 0 });
   const [loading, setLoading] = useState(true);
   const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+  const [showFullDashboard, setShowFullDashboard] = useState(true);
 
   // Analytics realtime modal
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
@@ -156,7 +158,7 @@ export default function DashboardPage() {
               <div className="p-2 bg-primary rounded-lg">
                 <Shield className="h-8 w-8 text-white" />
               </div>
-              Tableau de bord
+              Tableau de bord Administrateur
             </h1>
             <p className="text-muted-foreground mt-1">
               Bienvenue {admin.full_name || admin.email} • {admin.role?.replace(/_/g, " ").toUpperCase()}
@@ -164,6 +166,14 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-4">
+            <Button 
+              onClick={() => setShowFullDashboard(!showFullDashboard)} 
+              variant="outline"
+              className="text-sm"
+            >
+              {showFullDashboard ? "Vue simple" : "Vue complète"}
+            </Button>
+
             <Button onClick={() => { setAnalyticsOpen(true); startAnalyticsStream(); }} className="bg-amber-500 text-white">
               Suivi en temps réel
             </Button>
@@ -177,6 +187,13 @@ export default function DashboardPage() {
       </div>
 
       <main className="p-8 max-w-7xl mx-auto">
+        {/* Show full dashboard if toggled */}
+        {showFullDashboard && (
+          <div className="mb-12 bg-white rounded-lg shadow-lg p-6">
+            <AdminDashboard />
+          </div>
+        )}
+
         {/* Statistiques principales */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {statCards.map((stat) => {

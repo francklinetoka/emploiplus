@@ -1,0 +1,343 @@
+/**
+ * Authentication Controller
+ * 
+ * Handles all authentication-related business logic
+ * This separates route handlers from business logic for better testability
+ */
+
+import { Request, Response } from 'express';
+import { pool } from '../config/database.js';
+import { hashPassword, comparePassword, isValidEmail, getErrorMessage } from '../utils/helpers.js';
+import { generateToken } from '../middleware/auth.js';
+import bcrypt from 'bcryptjs';
+
+/**
+ * Register Admin
+ */
+export const registerAdmin = async (req: Request, res: Response) => {
+  try {
+    const { email, password, full_name, role = 'admin' } = req.body;
+
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email et mot de passe sont requis',
+      });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Format email invalide',
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Le mot de passe doit contenir au moins 6 caractères',
+      });
+    }
+
+    // Check if admin already exists
+    const { rows: existing } = await pool.query(
+      'SELECT id FROM admins WHERE email = $1',
+      [email.toLowerCase()]
+    );
+
+    if (existing.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cet email est déjà enregistré',
+      });
+    }
+
+    // Hash password
+    const hashed = bcrypt.hashSync(password, 10);
+
+    // Create admin
+    const { rows } = await pool.query(
+      `INSERT INTO admins (email, password, full_name, role)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, email, full_name, role, created_at`,
+      [email.toLowerCase(), hashed, full_name || null, role]
+    );
+
+    const admin = rows[0];
+
+    // Generate token
+    const token = generateToken(admin.id, admin.role);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Admin créé avec succès',
+      token,
+      admin: {
+        id: admin.id,
+        email: admin.email,
+        full_name: admin.full_name,
+        role: admin.role,
+        created_at: admin.created_at,
+      },
+    });
+  } catch (err) {
+    console.error('Register admin error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'inscription de l\'admin',
+      error: process.env.NODE_ENV === 'development' ? getErrorMessage(err) : undefined,
+    });
+  }
+};
+
+/**
+ * Login Admin
+ */
+export const loginAdmin = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email et mot de passe sont requis',
+      });
+    }
+
+    // Get admin by email
+    const { rows } = await pool.query(
+      'SELECT * FROM admins WHERE email = $1',
+      [email.toLowerCase()]
+    );
+
+    const admin = rows[0];
+
+    // Check if admin exists
+    if (!admin) {
+      return res.status(401).json({
+        success: false,
+        message: 'Email ou mot de passe incorrect',
+      });
+    }
+
+    // Verify password
+    const passwordMatch = bcrypt.compareSync(password, admin.password);
+    if (!passwordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Email ou mot de passe incorrect',
+      });
+    }
+
+    // Generate token
+    const token = generateToken(admin.id, admin.role);
+
+    // Return safe admin (without password)
+    const { password: _, ...safeAdmin } = admin;
+
+    return res.json({
+      success: true,
+      message: 'Connexion réussie',
+      token,
+      admin: safeAdmin,
+    });
+  } catch (err) {
+    console.error('Login admin error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la connexion',
+      error: process.env.NODE_ENV === 'development' ? getErrorMessage(err) : undefined,
+    });
+  }
+};
+
+/**
+ * Register User (Candidate or Company)
+ */
+export const registerUser = async (req: Request, res: Response) => {
+  try {
+    const { full_name, email, password, user_type = 'candidate', company_name = null } = req.body;
+
+    // Validation
+    if (!full_name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tous les champs obligatoires doivent être complétés',
+      });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Format email invalide',
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Le mot de passe doit contenir au moins 6 caractères',
+      });
+    }
+
+    if (!['candidate', 'company'].includes(user_type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Type d\'utilisateur invalide',
+      });
+    }
+
+    // Check if user already exists
+    const { rows: existing } = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email.toLowerCase()]
+    );
+
+    if (existing.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cet email est déjà enregistré',
+      });
+    }
+
+    // Hash password
+    const hashed = await hashPassword(password);
+
+    // Create user
+    const { rows } = await pool.query(
+      `INSERT INTO users (full_name, email, password, user_type, company_name, created_at)
+       VALUES ($1, $2, $3, $4, $5, NOW())
+       RETURNING id, full_name, email, user_type, company_name, created_at`,
+      [full_name, email.toLowerCase(), hashed, user_type, company_name]
+    );
+
+    const user = rows[0];
+
+    // Generate token
+    const token = generateToken(user.id, user.user_type);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Inscription réussie',
+      token,
+      user: {
+        id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        user_type: user.user_type,
+        company_name: user.company_name,
+        created_at: user.created_at,
+      },
+    });
+  } catch (err) {
+    console.error('Register user error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'inscription',
+      error: process.env.NODE_ENV === 'development' ? getErrorMessage(err) : undefined,
+    });
+  }
+};
+
+/**
+ * Login User
+ */
+export const loginUser = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email et mot de passe sont requis',
+      });
+    }
+
+    // Get user by email
+    const { rows } = await pool.query(
+      'SELECT * FROM users WHERE email = $1 AND is_deleted = false',
+      [email.toLowerCase()]
+    );
+
+    const user = rows[0];
+
+    // Check if user exists
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Email ou mot de passe incorrect',
+      });
+    }
+
+    // Check if user is blocked
+    if (user.is_blocked) {
+      return res.status(403).json({
+        success: false,
+        message: 'Ce compte a été bloqué',
+      });
+    }
+
+    // Verify password
+    const passwordMatch = await comparePassword(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Email ou mot de passe incorrect',
+      });
+    }
+
+    // Generate token
+    const token = generateToken(user.id, user.user_type);
+
+    // Return safe user (without password)
+    const { password: _, ...safeUser } = user;
+
+    return res.json({
+      success: true,
+      message: 'Connexion réussie',
+      token,
+      user: safeUser,
+    });
+  } catch (err) {
+    console.error('Login user error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la connexion',
+      error: process.env.NODE_ENV === 'development' ? getErrorMessage(err) : undefined,
+    });
+  }
+};
+
+/**
+ * Refresh Token
+ */
+export const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const { userId, userRole } = (req as any);
+
+    if (!userId || !userRole) {
+      return res.status(401).json({
+        success: false,
+        message: 'Non authentifié',
+      });
+    }
+
+    // Generate new token
+    const token = generateToken(userId, userRole);
+
+    return res.json({
+      success: true,
+      message: 'Token rafraîchi',
+      token,
+    });
+  } catch (err) {
+    console.error('Refresh token error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur lors du rafraîchissement du token',
+    });
+  }
+};

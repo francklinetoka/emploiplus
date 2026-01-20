@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LogOut, Trash2, Home, User, Lock, FileText, Zap, Briefcase, CreditCard } from "lucide-react";
+import { LogOut, Trash2, Home, User, Lock, FileText, Zap, Briefcase, CreditCard, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -14,11 +14,13 @@ export default function SettingsSidebar() {
 
   const candidateItems = [
     { label: "Mes informations", path: "/parametres/informations", icon: FileText },
+    { label: "Confidentialité", path: "/parametres/confidentialite-profil", icon: Shield },
     { label: "Abonnement", path: "/parametres/abonnement", icon: CreditCard },
   ];
 
   const companyItems = [
     { label: "Localisation & Contact", path: "/parametres/localisation", icon: Briefcase },
+    { label: "Confidentialité", path: "/parametres/confidentialite", icon: Shield },
     { label: "Abonnement", path: "/parametres/abonnement", icon: CreditCard },
   ];
 

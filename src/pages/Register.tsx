@@ -17,6 +17,9 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { COUNTRIES, CONGO_CITIES } from '@/lib/options';
+import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
+import { AuthHeader } from "@/components/auth/AuthHeader";
+import { AuthFooter } from "@/components/auth/AuthFooter";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -93,8 +96,8 @@ const Register = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Inscription réussie ! Vous êtes connecté.");
-      navigate('/compte');
+      toast.success("Inscription réussie ! Veuillez vous connecter.");
+      navigate('/connexion');
     }
     
     setLoading(false);
@@ -128,16 +131,19 @@ const Register = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Inscription réussie ! Vous êtes connecté.");
-      navigate('/compte');
+      toast.success("Inscription réussie ! Veuillez vous connecter.");
+      navigate('/connexion');
     }
     
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 py-12 px-4">
-      <Card className="w-full max-w-2xl p-8 space-y-6">
+    <div className="flex flex-col min-h-screen">
+      <AuthHeader />
+      
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 py-12 px-4">
+        <Card className="w-full max-w-2xl p-8 space-y-6">
         {/* Logo & Title */}
         <div className="text-center space-y-2">
           <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-primary mx-auto">
@@ -324,6 +330,26 @@ const Register = () => {
               >
                 {loading ? "Inscription en cours..." : "Créer mon compte candidat"}
               </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-muted-foreground">Ou</span>
+                </div>
+              </div>
+
+              <GoogleLoginButton 
+                onSuccess={(user) => {
+                  toast.success("Inscription réussie avec Google !");
+                }}
+                onError={(error) => {
+                  toast.error(error?.message || "Erreur lors de l'inscription Google");
+                }}
+                className="w-full"
+                userType="candidate"
+              />
             </form>
           </TabsContent>
 
@@ -450,6 +476,26 @@ const Register = () => {
               >
                 {loading ? "Inscription en cours..." : "Créer mon compte entreprise"}
               </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-muted-foreground">Ou</span>
+                </div>
+              </div>
+
+              <GoogleLoginButton 
+                onSuccess={(user) => {
+                  toast.success("Inscription réussie avec Google !");
+                }}
+                onError={(error) => {
+                  toast.error(error?.message || "Erreur lors de l'inscription Google");
+                }}
+                className="w-full"
+                userType="company"
+              />
             </form>
           </TabsContent>
         </Tabs>
@@ -461,17 +507,11 @@ const Register = () => {
             <Link to="/connexion">Se connecter</Link>
           </Button>
         </div>
-        {/* Footer links */}
-        <div className="text-center text-sm mt-4">
-          <div className="font-semibold">Emploi+© 2026</div>
-          <div className="text-xs">
-            <a href="/conditions" className="block hover:underline">Conditions générales d’utilisation de Emploi+</a>
-            <a href="/privacy" className="block hover:underline">Politique de confidentialité</a>
-            <a href="/cookies" className="block hover:underline">Politique relative aux cookies</a>
-            <a href="/copyright" className="block hover:underline">Politique de copyright</a>
-          </div>
-        </div>
+   
       </Card>
+      </div>
+      
+      <AuthFooter />
     </div>
   );
 };

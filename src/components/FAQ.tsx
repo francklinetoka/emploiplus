@@ -59,25 +59,28 @@ export default function FAQ({ compact = false }: { compact?: boolean }) {
   );
 
   return (
-    <div className={`space-y-4 ${compact ? 'max-w-3xl' : 'max-w-7xl'}`}>
-      <div className="flex gap-2 bg-transparent rounded-md p-1 border border-gray-100">
-        <button
-          className={`px-3 py-2 rounded-md text-sm font-medium ${active === 'emploi' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'}`}
-          onClick={() => setActive('emploi')}
-          aria-pressed={active === 'emploi'}
-        >
-          Aide à l'Emploi
-        </button>
-        <button
-          className={`px-3 py-2 rounded-md text-sm font-medium ${active === 'visuel' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'}`}
-          onClick={() => setActive('visuel')}
-          aria-pressed={active === 'visuel'}
-        >
-          Outils de Création Visuelle
-        </button>
-      </div>
+    <div className={`space-y-6 flex flex-col items-center w-full`}>
+      <h2 className="text-3xl font-bold text-center">FAQ (Foire aux Questions)</h2>
+      <div className={`${compact ? 'max-w-3xl' : 'max-w-3xl'} w-full`}>
+        <div className="flex gap-2 bg-transparent rounded-md p-1 border border-gray-100 justify-center">
+          <button
+            className={`px-3 py-2 rounded-md text-sm font-medium ${active === 'emploi' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'}`}
+            onClick={() => setActive('emploi')}
+            aria-pressed={active === 'emploi'}
+          >
+            Aide à l'Emploi
+          </button>
+          <button
+            className={`px-3 py-2 rounded-md text-sm font-medium ${active === 'visuel' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'}`}
+            onClick={() => setActive('visuel')}
+            aria-pressed={active === 'visuel'}
+          >
+            Outils de Création Visuelle
+          </button>
+        </div>
 
-      {active === 'emploi' ? renderList(emploiFaqs) : renderList(visuelFaqs)}
+        {active === 'emploi' ? renderList(emploiFaqs) : renderList(visuelFaqs)}
+      </div>
     </div>
   );
 }

@@ -8,6 +8,9 @@ import { Briefcase, Mail, Lock } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
+import { AuthHeader } from "@/components/auth/AuthHeader";
+import { AuthFooter } from "@/components/auth/AuthFooter";
 
 const LoginUser = () => {
   const navigate = useNavigate();
@@ -23,7 +26,13 @@ const LoginUser = () => {
       // If there's a redirect param, go there
       const params = new URLSearchParams(location.search);
       const redirect = params.get('redirect');
-      navigate(redirect || '/compte');
+      
+      if (redirect) {
+        navigate(redirect);
+      } else {
+        // Redirect all users to newsfeed
+        navigate('/');
+      }
     }
   }, [user, navigate, location.search]);
 
@@ -43,10 +52,9 @@ const LoginUser = () => {
 
       if (redirect) {
         navigate(redirect);
-      } else if (currentUser && currentUser.user_type === 'company') {
-        navigate('/espace-entreprise');
       } else {
-        navigate('/compte');
+        // Redirect all users to newsfeed
+        navigate('/');
       }
     }
 
@@ -54,8 +62,11 @@ const LoginUser = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 py-12 px-4">
-      <Card className="w-full max-w-md p-8 space-y-6">
+    <div className="flex flex-col min-h-screen">
+      <AuthHeader />
+      
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 py-12 px-4">
+        <Card className="w-full max-w-md p-8 space-y-6">
         {/* Logo & Title */}
         <div className="text-center space-y-2">
           <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 mx-auto">
@@ -124,10 +135,41 @@ const LoginUser = () => {
           >
             {loading ? "Connexion..." : "Se connecter"}
           </Button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-muted-foreground">Ou</span>
+            </div>
+          </div>
+
+          <GoogleLoginButton
+            onSuccess={(user) => {
+              toast.success("Connexion réussie avec Google !");
+              const params = new URLSearchParams(location.search);
+              const redirect = params.get('redirect');
+              
+              if (redirect) {
+                navigate(redirect);
+              } else {
+                // Redirect all users to newsfeed
+                navigate('/');
+              }
+            }}
+            onError={(error) => {
+              toast.error(error?.message || "Erreur lors de la connexion Google");
+            }}
+            className="w-full"
+          />
         </form>
 
        
       </Card>
+      </div>
+      
+      <AuthFooter />
     </div>
   );
 };
