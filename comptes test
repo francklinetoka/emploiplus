@@ -50,4 +50,7 @@ Gros fichier - index-CQBukj1k.js (3.2 MB) est volumineux
 💡 Pour optimiser:
 
 Faire du code-splitting pour réduire le bundle
-Utiliser lazy loading pour les routes lourdes
+Utiliser lazy loading pour les routes l
+
+
+test
