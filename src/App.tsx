@@ -53,6 +53,7 @@ import LoginUser from "./pages/LoginUser";
 import Register from "./pages/Register";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
+import { AuthCallback } from "./pages/AuthCallback";
 import { MatchingDemo } from "./pages/MatchingDemo";
 import { Connections } from "./pages/Connections";
 import Privacy from "./pages/Privacy";
@@ -195,6 +196,7 @@ const App = () => (
 
           <Route path="/connexion" element={<LoginUser />} />
           <Route path="/inscription" element={<Register />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/legal" element={<Legal />} />

@@ -1,71 +1,26 @@
-import { useGoogleLogin } from '@react-oauth/google';
 import { Button } from '@/components/ui/button';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
 interface GoogleLoginButtonProps {
-  onSuccess?: (user: any) => void;
-  onError?: (error: any) => void;
   className?: string;
-  autoRedirect?: boolean;
-  userType?: 'candidate' | 'company';
 }
 
 export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
-  onSuccess,
-  onError,
   className,
-  autoRedirect = true,
-  userType = 'candidate',
 }) => {
   const [loading, setLoading] = useState(false);
   const { handleGoogleLogin } = useGoogleAuth();
-  const navigate = useNavigate();
 
-  const login = useGoogleLogin({
-    onSuccess: async (credentialResponse) => {
-      setLoading(true);
-      try {
-        console.log('Google auth successful, processing...');
-        const result = await handleGoogleLogin(credentialResponse, userType);
-        if (result.error) {
-          console.error('Google login error:', result.error);
-          toast.error(result.error.message || 'Erreur lors de la connexion Google');
-          onError?.(result.error);
-        } else {
-          toast.success('Connexion réussie!');
-          onSuccess?.(result.user);
-          
-          // Auto-redirect if enabled
-          if (autoRedirect) {
-            // Redirect all users to newsfeed
-            navigate('/');
-          }
-        }
-      } catch (error: any) {
-        console.error('Google login exception:', error);
-        const errorMsg = error?.message || 'Erreur de connexion';
-        toast.error(errorMsg);
-        onError?.(error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    onError: () => {
-      const errorMsg = 'Erreur lors de la connexion Google';
-      console.error('Google login error:', errorMsg);
-      toast.error(errorMsg);
-      onError?.({ message: errorMsg });
-    },
-    flow: 'implicit',
-    scope: 'openai profile email',
-  });
+  const handleClick = async () => {
+    setLoading(true);
+    await handleGoogleLogin();
+    setLoading(false);
+  };
 
   return (
     <Button
-      onClick={() => login()}
+      onClick={handleClick}
       disabled={loading}
       className={className}
       variant="outline"
