@@ -8,11 +8,6 @@ export default defineConfig({
     port: 5173,
     host: "0.0.0.0",
     open: true,
-    hmr: {
-      host: "192.168.0.14",
-      port: 5173,
-      protocol: "ws",
-    },
     proxy: {
       "/api": {
         target: "http://localhost:5000",
