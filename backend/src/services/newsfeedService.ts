@@ -44,6 +44,8 @@ export interface Publication {
   account_status?: string;
   job_title?: string;
   certification_priority?: number;
+  is_blocked?: boolean;
+  is_deleted?: boolean;
 }
 
 export interface NewsfeedQueryOptions {

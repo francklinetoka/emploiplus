@@ -83,14 +83,14 @@ const userAuth = (req: Request, res: Response, next: NextFunction) => {
     const token = (auth.split(' ')[1] || "");
     try {
         console.log('userAuth token present:', !!token, 'masked:', token ? `${token.slice(0, 8)}...` : '');
-        const decoded = jwt.verify(token, JWT_SECRET);
+        const decoded: any = jwt.verify(token, JWT_SECRET);
         console.log('userAuth decoded id:', decoded?.id, 'role:', decoded?.role);
         req.userId = decoded.id;
         req.userRole = decoded.role;
         next();
     }
     catch (err) {
-        console.error('userAuth verify error:', err.stack || err.message || err);
+        console.error('userAuth verify error:', (err as any)?.stack || (err as any)?.message || err);
         return res.status(401).json({ success: false, message: 'Token invalide' });
     }
 };
@@ -101,7 +101,7 @@ const adminAuth = (req: Request, res: Response, next: NextFunction) => {
         return res.status(401).json({ success: false, message: 'Token manquant' });
     const token = (auth.split(' ')[1] || "");
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
+        const decoded: any = jwt.verify(token, JWT_SECRET);
         const allowed = ['admin', 'super_admin', 'admin_content'];
         if (!decoded.role || !allowed.includes(decoded.role)) {
             return res.status(403).json({ success: false, message: 'Accès admin requis' });
@@ -688,7 +688,7 @@ app.get("/api/jobs", async (req, res) => {
         const typeFilter = (req.query.type || '');
         
         // Pagination optimisée: 12 offres par page
-        const page = Math.max(1, parseInt(req.query.page || '1', 10));
+        const page = Math.max(1, parseInt(String(req.query.page || '1'), 10));
         const limit = 12; // Fixe à 12 items
         const offset = (page - 1) * limit;
 
@@ -713,30 +713,30 @@ app.get("/api/jobs", async (req, res) => {
         const params = [];
         let idx = 1;
 
-        if (q && q.trim()) {
-            const like = `%${q.trim()}%`;
+        if (q && String(q).trim()) {
+            const like = `%${String(q).trim()}%`;
             conditions.push(`(title ILIKE $${idx} OR company ILIKE $${idx} OR location ILIKE $${idx} OR sector ILIKE $${idx})`);
             params.push(like);
             idx++;
         }
-        if (locationFilter && locationFilter.trim()) {
+        if (locationFilter && String(locationFilter).trim()) {
             conditions.push(`location ILIKE $${idx}`);
-            params.push(`%${locationFilter.trim()}%`);
+            params.push(`%${String(locationFilter).trim()}%`);
             idx++;
         }
-        if (companyFilter && companyFilter.trim()) {
+        if (companyFilter && String(companyFilter).trim()) {
             conditions.push(`company ILIKE $${idx}`);
-            params.push(`%${companyFilter.trim()}%`);
+            params.push(`%${String(companyFilter).trim()}%`);
             idx++;
         }
-        if (sectorFilter && sectorFilter.trim()) {
+        if (sectorFilter && String(sectorFilter).trim()) {
             conditions.push(`sector ILIKE $${idx}`);
-            params.push(`%${sectorFilter.trim()}%`);
+            params.push(`%${String(sectorFilter).trim()}%`);
             idx++;
         }
-        if (typeFilter && typeFilter.trim()) {
+        if (typeFilter && String(typeFilter).trim()) {
             conditions.push(`type = $${idx}`);
-            params.push(typeFilter.trim());
+            params.push(String(typeFilter).trim());
             idx++;
         }
 
@@ -853,7 +853,7 @@ app.get('/api/jobs/:id', async (req, res) => {
         if (auth && auth.startsWith('Bearer ')) {
             const token = auth.split(' ')[1] || '';
             try {
-                const decoded = jwt.verify(token, JWT_SECRET);
+                const decoded = jwt.verify(token, JWT_SECRET) as any;
                 requesterId = decoded.id || null;
                 requesterRole = decoded.role || null;
             }
@@ -1034,8 +1034,8 @@ app.post('/api/job-applications', userAuth, async (req, res) => {
                         const payload = JSON.stringify(ins[0]);
                         for (const r of Array.from(clients)) {
                             try {
-                                r.write(`event: new_application\n`);
-                                r.write(`data: ${payload}\n\n`);
+                                (r as any).write(`event: new_application\n`);
+                                (r as any).write(`data: ${payload}\n\n`);
                             }
                             catch (e) {
                                 // ignore write errors
@@ -1343,8 +1343,8 @@ app.delete("/api/jobs/:id", async (req, res) => {
 // ──────────────────────────────────────────────────
 app.get("/api/formations", async (req, res) => {
     try {
-        const limit = parseInt(req.query.limit || '50', 10);
-        const offset = parseInt(req.query.offset || '0', 10);
+        const limit = parseInt(String(req.query.limit || '50'), 10);
+        const offset = parseInt(String(req.query.offset || '0'), 10);
         const { rows } = await pool.query(
             "SELECT * FROM formations WHERE published = true ORDER BY created_at DESC LIMIT $1 OFFSET $2",
             [limit, offset]
@@ -1421,7 +1421,7 @@ app.post("/api/admin/create", async (req, res) => {
         const token = req.headers.authorization?.split(" ")[1];
         if (!token)
             return res.status(401).json({ success: false });
-        const decoded = jwt.verify(token, JWT_SECRET);
+        const decoded: any = jwt.verify(token, JWT_SECRET);
         if (decoded.role !== "super_admin") {
             return res.status(403).json({ success: false, message: "Accès refusé" });
         }
@@ -1713,7 +1713,7 @@ app.post('/api/google-login', async (req, res) => {
                 const response = await fetch(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${token}`);
                 const tokenInfo = await response.json();
                 
-                if (!response.ok || tokenInfo.error) {
+                if (!response.ok || (tokenInfo as any).error) {
                     console.error('Token info verification failed:', tokenInfo);
                     return res.status(401).json({ success: false, message: 'Token Google invalide' });
                 }
@@ -1722,7 +1722,7 @@ app.post('/api/google-login', async (req, res) => {
                 const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const userInfo = await userInfoResponse.json();
+                const userInfo: any = await userInfoResponse.json();
                 
                 if (!userInfoResponse.ok) {
                     console.error('User info fetch failed:', userInfo);
@@ -3349,7 +3349,7 @@ app.get('/api/admin/realtime', async (req, res) => {
     if (!token)
         return res.status(401).json({ success: false, message: 'Token manquant' });
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
+        const decoded: any = jwt.verify(token, JWT_SECRET);
         const allowed = ['admin', 'super_admin', 'admin_content'];
         if (!decoded.role || !allowed.includes(decoded.role))
             return res.status(403).json({ success: false, message: 'Accès admin requis' });
@@ -3992,8 +3992,9 @@ app.use((err, req, res, next) => {
                 // If fetching a single resource (eg. /api/users/me), return an empty object
                 if (/\/api\/users(\/me|\/\d+)?/.test(req.path)) {
                     const body = { success: false, message: 'Erreur serveur (fallback)', data: {} };
-                    if (process.env.NODE_ENV !== 'production' && err && err.stack)
-                        body.stack = err.stack;
+                    if (process.env.NODE_ENV !== 'production' && err && (err as any).stack) {
+                        (body as any).stack = (err as any).stack;
+                    }
                     return res.status(200).json(body);
                 }
                 // Otherwise default to empty array for list endpoints
@@ -4005,9 +4006,9 @@ app.use((err, req, res, next) => {
             // fallthrough to generic 500
         }
     }
-    const body = { success: false, message: err?.message || 'Erreur serveur inattendue' };
-    if (process.env.NODE_ENV !== 'production' && err && err.stack) {
-        body.stack = err.stack;
+    const body: any = { success: false, message: (err as any)?.message || 'Erreur serveur inattendue' };
+    if (process.env.NODE_ENV !== 'production' && err && (err as any).stack) {
+        body.stack = (err as any).stack;
     }
     res.status(500).json(body);
 });

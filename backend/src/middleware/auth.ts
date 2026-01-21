@@ -7,7 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'change_this_in_production';
 declare global {
   namespace Express {
     interface Request {
-      userId?: string | number;
+      userId?: number;
       userRole?: string;
     }
   }
