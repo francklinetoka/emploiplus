@@ -265,8 +265,8 @@ const Header = () => {
 
 
         {/* Desktop Navigation */}
-        <div className="hidden items-center space-x-6 md:flex">
-          {navLinks.map((link) => {
+        <div className="hidden items-center md:flex" style={{ marginLeft: '2rem', gap: '1.5rem' }}>
+          {navLinks.map((link, index) => {
             if (!user && link.path === '/resources') return null;
             if (link.path === '/services') {
               return (
@@ -329,45 +329,63 @@ const Header = () => {
           })}
         </div>
 
-        {/* Global search (desktop) - visible only after login */}
-        {user && (
-          <div className="hidden md:flex items-center ml-4 w-96">
-            {searchOpen ? (
-              <GlobalSearchDropdown 
-                className="w-full"
-              />
-            ) : (
-              <Button variant="ghost" size="icon" onClick={() => setSearchOpen(true)} className="w-full justify-start text-slate-500">
-                <Search className="h-4 w-4 mr-2" />
-                Rechercher
-              </Button>
-            )}
-            {searchOpen && (
-              <Button type="button" variant="ghost" size="icon" onClick={() => { setSearchOpen(false); setGlobalSearch(''); }}>
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Desktop Auth Buttons */}
-        <div className="hidden items-center space-x-3 md:flex">
+        {/* Desktop Auth Buttons - Icons & Profile */}
+        <div className="hidden items-center md:flex gap-2">
           {user ? (
             <>
-              <NotificationDropdown />
-              <Link 
-                to="/messages" 
-                className="relative p-2 text-muted-foreground hover:text-primary transition-colors"
-                title="Messagerie"
-              >
-                <MessageCircle size={20} />
-                {messageUnreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    {messageUnreadCount > 9 ? '9+' : messageUnreadCount}
-                  </span>
+              {/* Icons Group (Search, Messages, Notifications) */}
+              <div className="flex items-center space-x-1 pr-4 border-r border-border">
+                {/* Search Button */}
+                {!searchOpen && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setSearchOpen(true)} 
+                    className="text-slate-500 hover:text-primary"
+                    title="Rechercher"
+                  >
+                    <Search className="h-5 w-5" />
+                  </Button>
                 )}
-              </Link>
-              <AccountQuickMenu />
+                {searchOpen && (
+                  <div className="relative w-96">
+                    <GlobalSearchDropdown 
+                      className="w-full"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => { setSearchOpen(false); setGlobalSearch(''); }}
+                      className="absolute right-0 top-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+                
+                {/* Messages */}
+                <Link 
+                  to="/messages" 
+                  className="relative p-2 text-muted-foreground hover:text-primary transition-colors"
+                  title="Messagerie"
+                >
+                  <MessageCircle size={20} />
+                  {messageUnreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {messageUnreadCount > 9 ? '9+' : messageUnreadCount}
+                    </span>
+                  )}
+                </Link>
+                
+                {/* Notifications */}
+                <NotificationDropdown />
+              </div>
+              
+              {/* Profile Menu with spacing */}
+              <div className="ml-2">
+                <AccountQuickMenu />
+              </div>
             </>
           ) : (
             <>

@@ -60,7 +60,7 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
       onError?.({ message: errorMsg });
     },
     flow: 'implicit',
-    scope: 'openid profile email',
+    scope: 'openai profile email',
   });
 
   return (

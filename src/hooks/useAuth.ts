@@ -1,6 +1,26 @@
 import { useState, useEffect } from 'react';
 import { authHeaders } from '@/lib/headers';
 
+// Get API base URL from environment or default
+const getAPIBaseURL = () => {
+  const env = import.meta.env.VITE_API_BASE_URL;
+  if (env) return env;
+  
+  // Fallback for development
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://localhost:5000';
+    }
+    if (host.match(/^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\./)) {
+      return `http://${host}:5000`;
+    }
+  }
+  return 'http://localhost:5000';
+};
+
+const API_BASE_URL = getAPIBaseURL();
+
 // Backend-only auth hook: uses /api/register, /api/login and /api/users/me
 export const useAuth = () => {
   const [user, setUser] = useState<any | null>(null);
@@ -24,7 +44,7 @@ export const useAuth = () => {
     }
 
     // validate token and refresh user profile
-    fetch('/api/users/me', { headers: authHeaders() })
+    fetch(`${API_BASE_URL}/api/users/me`, { headers: authHeaders() })
       .then(async (r) => {
         if (!r.ok) {
           // If unauthorized, token likely invalid — clear auth. For other errors, keep stored user.
@@ -56,7 +76,7 @@ export const useAuth = () => {
 
   const signUp = async (email: string, password: string, metadata: any) => {
     try {
-      const res = await fetch('/api/register', {
+      const res = await fetch(`${API_BASE_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, ...metadata }),
@@ -78,7 +98,7 @@ export const useAuth = () => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const res = await fetch('/api/login', {
+      const res = await fetch(`${API_BASE_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

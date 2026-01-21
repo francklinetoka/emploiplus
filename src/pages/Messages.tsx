@@ -5,13 +5,18 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { ConversationList } from '@/components/messaging/ConversationList';
 import { ChatWindow } from '@/components/messaging/ChatWindow';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Plus, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 
 export function Messages() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedConversationId, setSelectedConversationId] = useState<number | undefined>();
+  const [showNewChat, setShowNewChat] = useState(false);
 
   // Fetch conversations
   const { data: conversations = [], isLoading: conversationsLoading, refetch: refetchConversations } = useQuery({
@@ -19,6 +24,24 @@ export function Messages() {
     queryFn: () => api.getConversations(100),
     enabled: !!user,
     refetchInterval: 30000,
+  });
+
+  // Fetch suggested users for new conversations
+  const { data: suggestedUsers = [], isLoading: suggestedLoading } = useQuery({
+    queryKey: ['suggestedUsersForChat'],
+    queryFn: async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/users/suggestions?limit=8`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.data || data || [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!user && showNewChat,
   });
 
   // Fetch unread counts
@@ -36,12 +59,13 @@ export function Messages() {
     refetchInterval: 10000,
   });
 
-  // Delete conversation mutation
-  const deleteConversationMutation = useMutation({
-    mutationFn: (conversationId: number) => api.deleteConversation(conversationId),
-    onSuccess: () => {
+  // Create new conversation mutation
+  const createConversationMutation = useMutation({
+    mutationFn: (userId: number) => api.createConversation(userId),
+    onSuccess: (data) => {
       refetchConversations();
-      setSelectedConversationId(undefined);
+      setSelectedConversationId(data.id);
+      setShowNewChat(false);
     },
   });
 
@@ -56,19 +80,9 @@ export function Messages() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
+    <div className="h-full flex flex-col bg-gray-50 px-2 py-2">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4"
-        >
-          <ArrowLeft size={20} />
-          Retour
-        </button>
-        <h1 className="text-3xl font-bold text-gray-900">Messagerie</h1>
-        <p className="text-gray-600 mt-1">Gérez vos conversations avec les entreprises</p>
-      </div>
+      
 
       {/* Content */}
       <div className="flex-1 flex min-h-0">
@@ -109,19 +123,21 @@ export function Messages() {
         </div>
 
         {/* Chat Window - Desktop */}
-        <div className="hidden md:flex-1 md:flex md:bg-gray-50 md:p-6">
+        <div className="hidden md:flex-1 md:flex md:bg-gray-50 md:p-6 md:flex-col">
           {selectedConversation ? (
             <ChatWindowDesktop
               conversation={selectedConversation}
               currentUserId={user.id}
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-500">
-              <div className="text-center">
-                <p className="text-lg font-semibold">Sélectionnez une conversation</p>
-                <p className="text-sm">Choisissez une conversation pour commencer à discuter</p>
-              </div>
-            </div>
+            <StartConversationPanel 
+              showNewChat={showNewChat}
+              setShowNewChat={setShowNewChat}
+              suggestedUsers={suggestedUsers}
+              suggestedLoading={suggestedLoading}
+              onSelectUser={(userId) => createConversationMutation.mutate(userId)}
+              isCreating={createConversationMutation.isPending}
+            />
           )}
         </div>
       </div>
@@ -143,7 +159,91 @@ function ChatWindowDesktop({ conversation, currentUserId }: any) {
   );
 }
 
-// Mobile Chat Window
+// Start Conversation Panel - for when no conversation is selected
+function StartConversationPanel({
+  showNewChat,
+  setShowNewChat,
+  suggestedUsers,
+  suggestedLoading,
+  onSelectUser,
+  isCreating,
+}: any) {
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center text-gray-500 p-8">
+      {!showNewChat ? (
+        <div className="text-center max-w-md">
+          <div className="mb-6 flex justify-center">
+            <div className="p-4 bg-blue-100 rounded-full">
+              <Users className="h-8 w-8 text-blue-600" />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Commencez à discuter</h2>
+          <p className="text-gray-600 mb-6">Sélectionnez une conversation existante ou créez une nouvelle conversation.</p>
+          <Button 
+            onClick={() => setShowNewChat(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle conversation
+          </Button>
+        </div>
+      ) : (
+        <div className="w-full max-w-md">
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Sélectionnez un contact</h3>
+            <button
+              onClick={() => setShowNewChat(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+          </div>
+
+          {suggestedLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            </div>
+          ) : suggestedUsers.length > 0 ? (
+            <div className="space-y-2">
+              {suggestedUsers.map((user: any) => (
+                <Card 
+                  key={user.id}
+                  className="p-4 hover:bg-gray-50 cursor-pointer border transition-colors"
+                  onClick={() => onSelectUser(user.id)}
+                >
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user.profile_image_url} />
+                      <AvatarFallback>{user.full_name?.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{user.full_name}</p>
+                      <p className="text-sm text-gray-500 truncate">{user.profession || 'Utilisateur'}</p>
+                    </div>
+                    {isCreating && (
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-600">Aucun utilisateur disponible</p>
+              <Button 
+                variant="outline"
+                onClick={() => setShowNewChat(false)}
+                className="mt-4"
+              >
+                Retour
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}// Mobile Chat Window
 function ChatWindowPage({ conversation, currentUserId, onBack }: any) {
   return (
     <div className="flex flex-col h-full">

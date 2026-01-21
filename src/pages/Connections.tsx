@@ -102,20 +102,10 @@ export function Connections() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Network className="w-8 h-8 text-purple-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Connexions</h1>
-          </div>
-          <p className="text-gray-600">
-            Découvrez des professionnels, construisez votre réseau et restez connecté
-          </p>
-        </div>
-      </div>
+     
 
       {/* Main Content - 3 Columns Layout */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-2 py-2">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Left Column: Network Stats & Suggested */}
           <div className="lg:col-span-1 space-y-6">
