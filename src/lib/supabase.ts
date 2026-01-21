@@ -1,3 +1,5 @@
+// Supabase client initialization for authentication and real-time features
+// Uses environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
