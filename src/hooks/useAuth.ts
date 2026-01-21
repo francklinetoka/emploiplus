@@ -1,25 +1,8 @@
 import { useState, useEffect } from 'react';
 import { authHeaders } from '@/lib/headers';
 
-// Get API base URL from environment or default
-const getAPIBaseURL = () => {
-  const env = import.meta.env.VITE_API_BASE_URL;
-  if (env) return env;
-  
-  // Fallback for development
-  if (typeof window !== 'undefined') {
-    const host = window.location.hostname;
-    if (host === 'localhost' || host === '127.0.0.1') {
-      return 'http://localhost:5000';
-    }
-    if (host.match(/^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\./)) {
-      return `http://${host}:5000`;
-    }
-  }
-  return 'http://localhost:5000';
-};
-
-const API_BASE_URL = getAPIBaseURL();
+// Get API base URL from environment variable
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 // Backend-only auth hook: uses /api/register, /api/login and /api/users/me
 export const useAuth = () => {

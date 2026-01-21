@@ -17,33 +17,10 @@ export interface FormationData {
   price: string;
 }
 
-// API URL dynamique : détecte automatiquement l'adresse IP du backend
-const getAPIURL = () => {
-  // En production, utiliser la variable d'environnement si disponible
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
-  
-  // En développement, déterminer l'adresse du backend en fonction de l'adresse actuelle
-  if (typeof window !== 'undefined') {
-    const currentHost = window.location.hostname;
-    
-    // Si on est sur localhost, utiliser localhost
-    if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
-      return 'http://localhost:5000/api';
-    }
-    
-    // Si on est sur une adresse IP du réseau local, utiliser la même adresse IP pour le backend
-    if (currentHost.match(/^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\./)) {
-      return `http://${currentHost}:5000/api`;
-    }
-  }
-  
-  // Fallback par défaut
-  return 'http://localhost:5000/api';
-};
-
-const API_URL = getAPIURL();
+// API URL - utilise les variables d'environnement
+const API_URL = import.meta.env.VITE_API_BASE_URL 
+  ? `${import.meta.env.VITE_API_BASE_URL}/api`
+  : '/api';
 import { authHeaders } from '@/lib/headers';
 
 export const api = {

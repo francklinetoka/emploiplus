@@ -31,7 +31,8 @@ export function Messages() {
     queryKey: ['suggestedUsersForChat'],
     queryFn: async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/users/suggestions?limit=8`, {
+        const apiUrl = import.meta.env.VITE_API_BASE_URL || '';
+        const res = await fetch(`${apiUrl}/api/users/suggestions?limit=8`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         if (!res.ok) return [];

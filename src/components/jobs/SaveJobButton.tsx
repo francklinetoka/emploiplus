@@ -9,6 +9,8 @@ interface SaveJobButtonProps {
   className?: string;
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
 export default function SaveJobButton({ jobId, className = "" }: SaveJobButtonProps) {
   const { user } = useAuth();
   const [saved, setSaved] = useState(false);
@@ -25,7 +27,7 @@ export default function SaveJobButton({ jobId, className = "" }: SaveJobButtonPr
 
   const checkIfSaved = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/saved-jobs/check/${jobId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/saved-jobs/check/${jobId}`, {
         headers: authHeaders(),
       });
       const data = await res.json();
@@ -48,7 +50,7 @@ export default function SaveJobButton({ jobId, className = "" }: SaveJobButtonPr
     try {
       if (saved) {
         // Remove from saved
-        const res = await fetch(`http://localhost:5000/api/saved-jobs/${jobId}`, {
+        const res = await fetch(`${API_BASE_URL}/api/saved-jobs/${jobId}`, {
           method: 'DELETE',
           headers: authHeaders(),
         });
@@ -61,7 +63,7 @@ export default function SaveJobButton({ jobId, className = "" }: SaveJobButtonPr
         }
       } else {
         // Save job
-        const res = await fetch(`http://localhost:5000/api/saved-jobs`, {
+        const res = await fetch(`${API_BASE_URL}/api/saved-jobs`, {
           method: 'POST',
           headers: authHeaders('application/json'),
           body: JSON.stringify({ job_id: jobId })

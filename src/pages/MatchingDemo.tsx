@@ -108,7 +108,8 @@ function SelectedJobDisplay({ jobId }: { jobId: number }) {
   const { data: job, isLoading } = useQuery({
     queryKey: ['job', jobId],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:5000/api/jobs/${jobId}`);
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${apiUrl}/api/jobs/${jobId}`);
       return response.json();
     },
   });
