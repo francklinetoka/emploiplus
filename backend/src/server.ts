@@ -1790,6 +1790,72 @@ app.post('/api/google-login', async (req, res) => {
         res.status(500).json({ success: false, message: 'Erreur serveur lors de la connexion Google' });
     }
 });
+
+// Synchronize Google profile data with user in database (called from AuthCallback.tsx)
+// This endpoint updates the user profile with info from Supabase Google OAuth
+app.post('/api/auth/sync-google', async (req, res) => {
+    try {
+        const { id, email, full_name, profile_image_url } = req.body;
+
+        if (!id || !email) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'User ID and email are required' 
+            });
+        }
+
+        // Check if user exists by email
+        const { rows: existingUser } = await pool.query(
+            'SELECT id FROM users WHERE email = $1',
+            [email]
+        );
+
+        if (existingUser.length === 0) {
+            // User doesn't exist - create new user with Google info
+            const { rows: newUser } = await pool.query(
+                `INSERT INTO users (email, full_name, profile_image_url, user_type, password, google_id, created_at, updated_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+                 RETURNING id, email, full_name, profile_image_url, user_type`,
+                [email, full_name || 'User', profile_image_url || null, 'candidate', null, id]
+            );
+            
+            console.log(`[Sync-Google] New user created: ${email}`);
+            return res.json({ 
+                success: true, 
+                message: 'User created and synced',
+                user: newUser[0] 
+            });
+        }
+
+        // User exists - update profile with Google info
+        const userId = existingUser[0].id;
+        const { rows: updated } = await pool.query(
+            `UPDATE users 
+             SET 
+                full_name = COALESCE($1, full_name),
+                profile_image_url = COALESCE($2, profile_image_url),
+                google_id = $3,
+                updated_at = NOW()
+             WHERE id = $4
+             RETURNING id, email, full_name, profile_image_url, user_type`,
+            [full_name || null, profile_image_url || null, id, userId]
+        );
+
+        console.log(`[Sync-Google] User updated: ${email}`);
+        res.json({ 
+            success: true,
+            message: 'User profile synced',
+            user: updated[0]
+        });
+    } catch (err) {
+        console.error('Sync Google error:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error syncing Google profile'
+        });
+    }
+});
+
 // (duplicate GET /api/users/me handler removed; single handler exists earlier)
 // Save company recommendation preferences (companies only)
 app.post('/api/company-recommendations', userAuth, async (req, res) => {
