@@ -1804,6 +1804,9 @@ app.post('/api/auth/sync-google', async (req, res) => {
             });
         }
 
+        // Ensure google_id column exists
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT`).catch(() => {});
+
         // Check if user exists by email
         const { rows: existingUser } = await pool.query(
             'SELECT id FROM users WHERE email = $1',
