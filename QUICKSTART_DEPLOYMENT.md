@@ -25,7 +25,7 @@
 5. Ajouter Environment Variables:
    DATABASE_URL=<votre_supabase_url>
    JWT_SECRET=<générer_avec_./generate-secrets.sh>
-   CORS_ORIGINS=https://VOTRE_VERCEL_DOMAIN.vercel.app
+   CORS_ORIGINS=https://emploiplus.vercel.app
    NODE_ENV=production
 6. Click "Deploy"
 ```

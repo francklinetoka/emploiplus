@@ -1,5 +1,5 @@
 // backend/src/server.ts
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import dotenv from 'dotenv';
 import cors from "cors";
 import helmet from "helmet";
@@ -45,6 +45,16 @@ import {
 const app = express();
 // Load environment variables from backend/.env when running locally
 dotenv.config();
+
+// Extend Express Request type
+declare global {
+  namespace Express {
+    interface Request {
+      userId?: number;
+      userRole?: string;
+    }
+  }
+}
 // Security middlewares
 app.use(helmet());
 // CORS: allow origins configured via CORS_ORIGINS env (comma-separated), fallback to localhost during dev
@@ -66,7 +76,7 @@ const apiLimiter = rateLimit({ windowMs: 60 * 1000, max: 120 });
 app.use('/api/', apiLimiter);
 // JWT secret must come from env in production
 const JWT_SECRET = process.env.JWT_SECRET || 'change_this_in_production';
-const userAuth = (req, res, next) => {
+const userAuth = (req: Request, res: Response, next: NextFunction) => {
     const auth = req.headers.authorization;
     if (!auth)
         return res.status(401).json({ success: false, message: 'Token manquant' });
@@ -85,7 +95,7 @@ const userAuth = (req, res, next) => {
     }
 };
 // Admin auth middleware - only allow admin roles
-const adminAuth = (req, res, next) => {
+const adminAuth = (req: Request, res: Response, next: NextFunction) => {
     const auth = req.headers.authorization;
     if (!auth)
         return res.status(401).json({ success: false, message: 'Token manquant' });
@@ -4520,8 +4530,9 @@ app.get('/api/conversations/:conversationId/messages', userAuth, async (req, res
     }
 });
 
+// Mark all remaining async handlers as any for type compatibility
 // Send a message
-app.post('/api/messages', userAuth, async (req, res) => {
+app.post('/api/messages', userAuth, async (req: any, res: any) => {
     try {
         const userId = req.userId;
         const { conversationId, receiverId, content } = req.body;
