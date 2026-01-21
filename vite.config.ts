@@ -26,6 +26,16 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    outDir: "dist",
+    sourcemap: false, // Disabled in production
+    minify: "terser",
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console logs in production
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

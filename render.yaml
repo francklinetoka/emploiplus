@@ -1,7 +1,7 @@
 services:
   - type: web
-    name: emploi-connect-backend
-    repo: https://github.com/YOUR_USERNAME/emploi-connect
+    name: emploiplus-backend
+    repo: https://github.com/YOUR_USERNAME/emploiplus
     rootDir: backend
     runtime: node
     buildCommand: npm install && npm run build
