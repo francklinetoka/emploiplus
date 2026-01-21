@@ -105,6 +105,7 @@ import CatalogsPage from "./pages/admin/catalogs/page";
 import VerifyRequestsPage from "./pages/admin/verify-requests/page";
 import Contact from "./pages/Contact";
 import AdminNotificationsPage from "./pages/admin/notifications/page";
+import { Messages } from "./pages/Messages";
 
 const queryClient = new QueryClient();
 
@@ -160,6 +161,7 @@ const App = () => (
             <Route path="/simulateur-entretien" element={<InterviewSimulator />} />
             <Route path="/matching-demo" element={<MatchingDemo />} />
             <Route path="/connexions" element={<Connections />} />
+            <Route path="/messages" element={<Messages />} />
             
           {/* Tools et Services */}
             <Route path="/cv-generator" element={<CVGenerator />} />
@@ -197,6 +199,8 @@ const App = () => (
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/legal" element={<Legal />} />
           <Route path="/cookies" element={<Cookies />} />
+
+
 
           {/* ADMIN — TOUT DANS LE LAYOUT */}
           <Route path="/admin" element={<AdminLayout />}>

@@ -17,12 +17,16 @@ export function MessagingWidget() {
   const [openChats, setOpenChats] = useState<OpenChat[]>([]);
 
   // Fetch conversations
-  const { data: conversations = [] } = useQuery({
+  const { data: conversationsData, isError: conversationsError } = useQuery({
     queryKey: ['conversations'],
     queryFn: () => api.getConversations(50),
     enabled: !!user,
     refetchInterval: 30000, // Refresh every 30s
+    retry: 2,
   });
+
+  // Ensure conversations is always an array
+  const conversations = Array.isArray(conversationsData) ? conversationsData : [];
 
   // Fetch unread count
   const { data: unreadData } = useQuery({
@@ -30,6 +34,7 @@ export function MessagingWidget() {
     queryFn: () => api.getUnreadMessageCount(),
     enabled: !!user,
     refetchInterval: 10000, // Refresh every 10s
+    retry: 2,
   });
 
   const unreadCount = unreadData?.count || 0;

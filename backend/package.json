@@ -11,6 +11,9 @@
     "seed:companies": "node ./scripts/seed_companies.mjs",
     "seed:applications": "node ./scripts/seed_applications.mjs"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "keywords": [],
   "author": "Francklin Etoka",
   "license": "ISC",

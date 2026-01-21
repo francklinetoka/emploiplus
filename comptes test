@@ -36,45 +36,7 @@ passe : goodmoney@gmail.com | Type : company
 
 
 
-postmaster.pid
+Supabase emploiplus connect : G9yGu6bLRYBQtUQK
 
 
 
-
-
-Génère une logique de classement et de filtrage pour le module fil d actualité afin de garantir la pertinence et la sécurité des contenus affichés.
-
-Regles de Tri et de Priorite : Implémente un système de tri hybride pour l affichage des publications. La règle de base est la chronologie : les publications les plus récentes doivent apparaître en haut de la page. Ajoute une règle de priorité pour valoriser le contenu de qualité : les publications provenant des Entreprises Certifiées et des Candidats Certifiés doivent bénéficier d un boost de visibilité pour apparaître prioritairement parmi les nouveaux messages. Assure toi que le mélange entre contenu prioritaire et contenu récent reste fluide pour l utilisateur.
-Filtrage de Securite et Modération : Intègre le filtre anti profanité directement dans la logique d affichage. Si une publication contient des mots interdits non modérés, elle ne doit pas être récupérée par l API du fil d actualité. Applique la vérification du Mode Recherche Discrète : avant d envoyer une interaction comme un like ou un commentaire au client, le système doit vérifier si l auteur est en mode discret. Si le mode discret est activé et que l utilisateur qui consulte le fil appartient à l entreprise actuelle du candidat, l activité de ce candidat doit être masquée ou anonymisée pour cet observateur spécifique.
-Logique de Visibilite : Le système doit vérifier le statut de chaque compte auteur avant de générer le flux. Les publications des comptes bloqués ou suspendus par l administrateur doivent être automatiquement exclues du fil d actualité pour tous les utilisateurs.
-Optimisation des Performances de Tri : La logique de tri et les jointures de vérification des statuts Certifiés doivent être effectuées directement au niveau de la base de données PostgreSQL pour garantir une réponse rapide de l API. Utilise des index sur les colonnes de date de création et de statut de certification pour accélérer le traitement des requêtes.
-
-
-
-
-
-
-
-Génère une optimisation technique pour la page de liste des offres d emploi afin de réduire la consommation des ressources serveur.
-
-Mise en place de la Pagination : Configure l API pour qu elle ne renvoie que 12 offres par requête. Implémente un système de navigation par numéros de page ou un bouton Charger plus pour demander les offres suivantes uniquement si nécessaire.
-Optimisation des requetes SQL : Modifie la requête de récupération pour ne sélectionner que les colonnes essentielles à l affichage de la liste : titre du poste, identifiant de l entreprise, type de contrat, localisation et date de publication. Exclue le champ description complète de la requête initiale pour alléger le poids des données transférées. La description ne sera chargée que lors de l ouverture de la page détaillée de l offre.
-Indexation de la base de données : Ajoute des index PostgreSQL sur les colonnes de filtrage les plus utilisées : type de contrat, ville, et secteur d activité. Assure toi que la recherche par mots clés utilise un index de type Full Text Search pour éviter les scans complets de la table.
-Strategie de Cache : Implémente un système de cache temporaire pour les résultats des recherches les plus communes. Si plusieurs utilisateurs effectuent la même recherche dans un intervalle de 5 minutes, le serveur doit renvoyer la réponse stockée en cache au lieu d effectuer un nouveau calcul en base de données.
-
-
-
-
-Prompt pour l'optimisation globale des barres de recherche
-
-Génère une mise à jour technique pour toutes les barres de recherche du site (Header, Offres, Formations) afin de minimiser la charge serveur.
-
-Implémentation du Debouncing : Ajoute un délai de 500 millisecondes sur chaque champ de recherche. Le système ne doit déclencher la requête API que si l utilisateur arrête de saisir du texte pendant ce délai.
-
-Condition de recherche minimale : Bloque le déclenchement automatique des recherches tant que le champ de saisie contient moins de 3 caractères. Affiche un message discret ou une icône indiquant que la saisie doit être plus longue pour lancer la recherche.
-
-Optimisation des requêtes Backend : Remplace les recherches de type LIKE par la fonctionnalité Full Text Search de PostgreSQL (tsvector et tsquery). Crée des index GIN sur les colonnes suivantes : titre des offres, contenu des formations, nom des entreprises, et titres professionnels des candidats.
-
-Limitation des résultats (Limit) : Pour la barre de recherche du Header (recherche globale), limite les résultats renvoyés par l API à un maximum de 5 ou 8 suggestions immédiates pour réduire le poids de la réponse JSON.
-
-Mise en cache locale (Frontend) : Si l utilisateur efface un caractère et revient à une recherche déjà effectuée lors de la même session, utilise les données stockées en mémoire (cache frontend) au lieu de solliciter à nouveau le serveur.

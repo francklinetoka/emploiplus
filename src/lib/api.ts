@@ -160,6 +160,15 @@ export const api = {
 
   getUsers: () => fetch(`${API_URL}/users`).then(res => res.json()),
 
+  getCandidates: (limit = 50) => 
+    fetch(`${API_URL}/users/candidates?limit=${limit}`).then(res => {
+      if (!res.ok) {
+        console.error('Failed to fetch candidates:', res.status, res.statusText);
+        return [];
+      }
+      return res.json().catch(() => []);
+    }),
+
   createUser: (user: { full_name: string; email: string; user_type: string }) =>
 
     fetch(`${API_URL}/users`, {
@@ -274,28 +283,55 @@ export const api = {
     const headers = authHeaders();
     return fetch(`${API_URL}/follows/stats`, {
       headers,
-    }).then(res => res.json());
+    }).then(res => {
+      if (!res.ok) {
+        console.error('Failed to fetch network stats:', res.status, res.statusText);
+        return { followerCount: 0, followingCount: 0 };
+      }
+      return res.json().then(data => ({
+        followerCount: parseInt(data?.followerCount || 0, 10),
+        followingCount: parseInt(data?.followingCount || 0, 10)
+      })).catch(() => ({ followerCount: 0, followingCount: 0 }));
+    });
   },
 
   getFollowSuggestions: (limit = 10) => {
     const headers = authHeaders();
     return fetch(`${API_URL}/follows/suggestions?limit=${limit}`, {
       headers,
-    }).then(res => res.json());
+    }).then(res => {
+      if (!res.ok) {
+        console.error('Failed to fetch follow suggestions:', res.status, res.statusText);
+        return [];
+      }
+      return res.json().catch(() => []);
+    });
   },
 
   getNetworkActivity: (limit = 20) => {
     const headers = authHeaders();
     return fetch(`${API_URL}/follows/activity?limit=${limit}`, {
       headers,
-    }).then(res => res.json());
+    }).then(res => {
+      if (!res.ok) {
+        console.error('Failed to fetch network activity:', res.status, res.statusText);
+        return [];
+      }
+      return res.json().catch(() => []);
+    });
   },
 
   getFollowingUsers: () => {
     const headers = authHeaders();
     return fetch(`${API_URL}/follows/following`, {
       headers,
-    }).then(res => res.json());
+    }).then(res => {
+      if (!res.ok) {
+        console.error('Failed to fetch following users:', res.status, res.statusText);
+        return [];
+      }
+      return res.json().catch(() => []);
+    });
   },
 
   getFollowerUsers: () => {
@@ -333,7 +369,13 @@ export const api = {
     const headers = authHeaders();
     return fetch(`${API_URL}/conversations?limit=${limit}`, {
       headers,
-    }).then(res => res.json());
+    }).then(res => {
+      if (!res.ok) {
+        console.error('Failed to fetch conversations:', res.status, res.statusText);
+        return [];
+      }
+      return res.json().catch(() => []);
+    });
   },
 
   createConversation: (recipientId: number, subjectId?: number) => {
@@ -406,7 +448,13 @@ export const api = {
     const headers = authHeaders();
     return fetch(`${API_URL}/messages/unread/count`, {
       headers,
-    }).then(res => res.json());
+    }).then(res => {
+      if (!res.ok) {
+        console.error('Failed to fetch unread count:', res.status, res.statusText);
+        return { count: 0 };
+      }
+      return res.json().catch(() => ({ count: 0 }));
+    });
   },
 
   getMessageSubjects: (companyId: number) => {

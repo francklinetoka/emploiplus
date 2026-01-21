@@ -25,7 +25,10 @@ export function NetworkStats() {
     );
   }
 
-  const stats = data as NetworkStatsData || { followerCount: 0, followingCount: 0 };
+  // Ensure stats values are valid numbers
+  const followerCount = Number.isNaN(data?.followerCount) || data?.followerCount === undefined ? 0 : parseInt(data.followerCount, 10);
+  const followingCount = Number.isNaN(data?.followingCount) || data?.followingCount === undefined ? 0 : parseInt(data.followingCount, 10);
+  const totalNetwork = followerCount + followingCount;
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm">
@@ -39,7 +42,7 @@ export function NetworkStats() {
           </div>
           <div>
             <p className="text-sm text-gray-600">Abonnés</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.followerCount}</p>
+            <p className="text-2xl font-bold text-gray-900">{followerCount}</p>
           </div>
         </div>
 
@@ -50,7 +53,7 @@ export function NetworkStats() {
           </div>
           <div>
             <p className="text-sm text-gray-600">Abonnements</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.followingCount}</p>
+            <p className="text-2xl font-bold text-gray-900">{followingCount}</p>
           </div>
         </div>
       </div>
@@ -62,7 +65,7 @@ export function NetworkStats() {
       <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
         <p className="text-sm font-medium text-gray-600">Taille du réseau</p>
         <p className="text-lg font-bold text-gray-900">
-          {stats.followerCount + stats.followingCount}
+          {totalNetwork}
         </p>
       </div>
     </div>
