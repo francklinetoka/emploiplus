@@ -1,6 +1,6 @@
 export const JWT_SECRET = process.env.JWT_SECRET || 'change_this_in_production';
 
-export const API_PORT = process.env.PORT || 5000;
+export const API_PORT = parseInt(process.env.PORT || '5000', 10);
 
 export const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 
