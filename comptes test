@@ -40,3 +40,14 @@ Supabase emploiplus connect : G9yGu6bLRYBQtUQK
 
 postgresql://postgres.gcwqiplhiwbicnisnaay:G9yGu6bLRYBQtUQK@aws-1-eu-central-1.pooler.supabase.com:6543/postgres
 
+
+
+
+ Avertissements (non-bloquants):
+
+Chunk FAQ.tsx - Importé statiquement et dynamiquement (minor)
+Gros fichier - index-CQBukj1k.js (3.2 MB) est volumineux
+💡 Pour optimiser:
+
+Faire du code-splitting pour réduire le bundle
+Utiliser lazy loading pour les routes lourdes
