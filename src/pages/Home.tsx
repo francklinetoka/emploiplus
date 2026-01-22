@@ -98,10 +98,16 @@ const Home = () => {
            
            
            
-            <div className="relative aspect-video rounded-2xl overflow-hidden shadow-medium">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-               <video src="public/Vid_HOME_EquipeE+.mov"></video>
-              </div>
+            <div className="relative aspect-video rounded-2xl overflow-hidden shadow-medium bg-black">
+              <video 
+                width="100%" 
+                height="100%" 
+                controls 
+                className="w-full h-full object-cover"
+              >
+                <source src="https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4" type="video/mp4" />
+                Votre navigateur ne supporte pas la balise vidéo.
+              </video>
             </div>
             
 
