@@ -1596,7 +1596,15 @@ app.post("/api/users", async (req, res) => {
 // Public registration endpoint for candidates and companies
 app.post("/api/register", async (req, res) => {
     try {
-        let { email, password, user_type = "candidate", full_name, company_name, company_address, phone, country } = req.body;
+        let { 
+            email, password, user_type = "candidate", 
+            full_name, company_name, company_address, phone, country,
+            // Candidat fields
+            city, gender, birthdate, nationality,
+            // Entreprise fields
+            representative
+        } = req.body;
+        
         // normalize user_type variants
         if (typeof user_type === 'string') {
             const ut = String(user_type).toLowerCase();
@@ -1610,8 +1618,10 @@ app.post("/api/register", async (req, res) => {
         else {
             user_type = 'candidate';
         }
+        
         if (!email || !password)
             return res.status(400).json({ success: false, message: "Email et mot de passe requis" });
+        
         // Basic validations
         const emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
         if (!emailRe.test(String(email)))
@@ -1620,17 +1630,45 @@ app.post("/api/register", async (req, res) => {
             return res.status(400).json({ success: false, message: 'Mot de passe trop court (>=8 caractères)' });
         if (phone && !/^[0-9+\-\s()]{6,20}$/.test(String(phone)))
             return res.status(400).json({ success: false, message: 'Numéro de téléphone invalide' });
+        
         const { rows: existing } = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
         if (existing.length > 0)
             return res.status(400).json({ success: false, message: "Email déjà utilisé" });
+        
         // Enforce registration limited to République du Congo (server-side)
         if (!country || String(country).toLowerCase().indexOf('congo') === -1) {
             return res.status(403).json({ success: false, message: 'Inscription autorisée uniquement depuis la République du Congo' });
         }
+        
         const hashed = bcrypt.hashSync(password, 10);
-        const { rows } = await pool.query(`INSERT INTO users (full_name, email, password, user_type, company_name, company_address, phone, country, is_verified)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,false)
-       RETURNING id, full_name, email, user_type, company_name, company_address, phone, country, created_at`, [full_name || null, email, hashed, user_type, company_name || null, company_address || null, phone || null, country || null]);
+        
+        // Construire les colonnes dynamiquement selon le type d'utilisateur
+        const columns = ['full_name', 'email', 'password', 'user_type', 'country', 'is_verified'];
+        const values = [full_name || null, email, hashed, user_type, country, false];
+        let valueIndex = 6;
+        
+        if (user_type === 'candidate') {
+            if (phone) { columns.push('phone'); values.push(phone); valueIndex++; }
+            if (city) { columns.push('city'); values.push(city); valueIndex++; }
+            if (gender) { columns.push('gender'); values.push(gender); valueIndex++; }
+            if (birthdate) { columns.push('birthdate'); values.push(birthdate); valueIndex++; }
+            if (nationality) { columns.push('nationality'); values.push(nationality); valueIndex++; }
+        } else if (user_type === 'company') {
+            if (company_name) { columns.push('company_name'); values.push(company_name); valueIndex++; }
+            if (company_address) { columns.push('company_address'); values.push(company_address); valueIndex++; }
+            if (phone) { columns.push('phone'); values.push(phone); valueIndex++; }
+            if (representative) { columns.push('full_name'); values[0] = representative || company_name || null; }
+        }
+        
+        const columnList = columns.join(', ');
+        const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+        const returnColumns = [
+            'id', 'full_name', 'email', 'user_type', 'company_name', 'company_address', 
+            'phone', 'country', 'created_at', 'city', 'gender', 'birthdate', 'nationality'
+        ].join(', ');
+        
+        const query = `INSERT INTO users (${columnList}) VALUES (${placeholders}) RETURNING ${returnColumns}`;
+        const { rows } = await pool.query(query, values);
         const user = rows[0];
         // After creating the user, attempt to send a personalized welcome notification
         try {
@@ -1899,7 +1937,23 @@ app.put('/api/users/me', userAuth, async (req, res) => {
             'availability', 'salary', 'linkedin', 'bio', 'email', 'company_email',
             'sector', 'company_size', 'description', 'mission', 'values', 'benefits',
             'public_settings', 'company', 'company_id', 'discreet_mode_enabled',
-            'hidden_from_company_id', 'hidden_from_company_name'
+            'hidden_from_company_id', 'hidden_from_company_name',
+            // Candidat - Documents Professionnels
+            'cv_url', 'lm_url',
+            // Candidat - Diplômes & Expériences
+            'diplome_url', 'certificat_travail_url',
+            // Candidat - Identité & Résidence
+            'cni_url', 'passeport_url', 'carte_residence_url',
+            // Candidat - Documents Administratifs
+            'nui_url', 'recepisse_acpe_url',
+            // Entreprise - Documents Légaux
+            'rccm_url', 'statuts_url', 'carte_grise_fiscale_url',
+            // Entreprise - Documents Fiscaux
+            'attestation_non_redevance_url',
+            // Entreprise - Locaux
+            'bail_url',
+            // Entreprise - Représentants
+            'cni_representant_url'
         ];
         // Dynamic query building - only update columns that are in the request body
         const updates = [];
@@ -3574,47 +3628,16 @@ const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(UPLOAD_DIR)) {
     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
+// DEPRECATED: This endpoint is replaced by Supabase Storage
+// Keeping for backwards compatibility, redirects to frontend to use Supabase directly
 app.post('/api/upload', userAuth, async (req, res) => {
-    try {
-        // Expect base64-encoded file in body: { base64Content, originalName, category }
-        const { base64Content, originalName, category = 'documents' } = req.body;
-        if (!base64Content || !originalName) {
-            return res.status(400).json({ success: false, message: 'base64Content et originalName requis' });
-        }
-        // Validate category
-        const validCategories = ['profiles', 'services', 'portfolios', 'documents', 'jobs', 'formations'];
-        const uploadCategory = validCategories.includes(category) ? category : 'documents';
-        const buffer = Buffer.from(base64Content, 'base64');
-        // Reject very large uploads
-        const MAX_BYTES = 5 * 1024 * 1024; // 5MB
-        if (buffer.length > MAX_BYTES) {
-            return res.status(413).json({ success: false, message: 'Fichier trop volumineux (max 5MB)' });
-        }
-        // Sanitize original name: keep only safe chars
-        const safeBase = String(originalName).split('/').pop()?.split('\\').pop() || 'file';
-        const safeName = safeBase.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-        const fileName = `${Date.now()}-${safeName}`;
-        const categoryDir = path.join(UPLOAD_DIR, uploadCategory);
-        // Ensure category subdirectory exists
-        if (!fs.existsSync(categoryDir)) {
-            fs.mkdirSync(categoryDir, { recursive: true });
-        }
-        const filePath = path.join(categoryDir, fileName);
-        // Prevent writing outside intended directory
-        if (!filePath.startsWith(categoryDir)) {
-            return res.status(400).json({ success: false, message: 'Nom de fichier invalide' });
-        }
-        fs.writeFileSync(filePath, buffer, { mode: 0o644 });
-        const storage_url = `/uploads/${uploadCategory}/${fileName}`;
-        res.json({ success: true, storage_url, fileName });
-    }
-    catch (err) {
-        console.error('Upload error:', err);
-        res.status(500).json({ success: false, message: 'Erreur lors du téléchargement' });
-    }
+    res.status(410).json({
+        success: false,
+        message: 'Ce endpoint est dépréciée. Veuillez utiliser Supabase Storage directement depuis le frontend.',
+        documentation: 'Voir SUPABASE_MIGRATION.md'
+    });
 });
-// Serve uploaded files statically (deny dotfiles, no directory index)
-app.use('/uploads', express.static(UPLOAD_DIR, { dotfiles: 'deny', index: false }));
+// Note: /uploads routes are no longer served as files are now in Supabase Storage
 // Ensure the `business_cards` table exists
 pool.query(`CREATE TABLE IF NOT EXISTS business_cards (
     id SERIAL PRIMARY KEY,

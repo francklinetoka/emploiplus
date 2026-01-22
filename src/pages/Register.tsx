@@ -36,6 +36,8 @@ const Register = () => {
     country: "",
     city: "",
     phone: "",
+    gender: "",
+    birthdate: "",
     password: "",
     confirmPassword: "",
   });
@@ -90,6 +92,8 @@ const Register = () => {
     };
     if (candidatForm.phone) metadata.phone = candidatForm.phone;
     if (candidatForm.city) metadata.city = candidatForm.city;
+    if (candidatForm.gender) metadata.gender = candidatForm.gender;
+    if (candidatForm.birthdate) metadata.birthdate = candidatForm.birthdate;
 
     const { error } = await signUp(candidatForm.email, candidatForm.password, metadata);
 
@@ -255,6 +259,33 @@ const Register = () => {
                   </Select>
                 </div>
               )}
+
+              {/* Gender and Birthdate */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="gender">Genre</Label>
+                  <Select value={candidatForm.gender} onValueChange={(value) => setCandidatForm({ ...candidatForm, gender: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner le genre" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Homme</SelectItem>
+                      <SelectItem value="female">Femme</SelectItem>
+                      <SelectItem value="other">Autre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="birthdate">Date de naissance</Label>
+                  <Input
+                    id="birthdate"
+                    type="date"
+                    value={candidatForm.birthdate}
+                    onChange={(e) => setCandidatForm({ ...candidatForm, birthdate: e.target.value })}
+                  />
+                </div>
+              </div>
 
               {/* Phone number - auto prefix for Congo */}
               <div className="space-y-2">

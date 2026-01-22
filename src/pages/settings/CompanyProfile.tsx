@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Loader2, Upload } from "lucide-react";
 import { authHeaders } from '@/lib/headers';
 import { uploadFile } from '@/lib/upload';
+import CompanyDocumentsUpload from '@/components/CompanyDocumentsUpload';
 
 export default function CompanyProfile() {
   const { user, loading: authLoading } = useAuth();
@@ -364,6 +365,18 @@ export default function CompanyProfile() {
           )}
         </form>
       </Card>
+
+      {/* SECTION: Documents - Upload groupé */}
+      {user && (
+        <CompanyDocumentsUpload
+          userId={String(user.id)}
+          profileData={profileData}
+          onDocumentUploaded={() => {
+            // Recharger le profil après upload
+            fetchProfile();
+          }}
+        />
+      )}
     </div>
   );
 }

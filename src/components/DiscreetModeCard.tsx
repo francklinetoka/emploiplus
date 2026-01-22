@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import Icon from '@/components/Icon';
-import { authHeaders } from '@/lib/headers';
+import { authHeaders, buildApiUrl } from '@/lib/headers';
 
 interface DiscreetModeCardProps {
   userType: string;
@@ -28,7 +28,7 @@ export default function DiscreetModeCard({
     const fetchDiscreetModeStatus = async () => {
       try {
         const headers = authHeaders('application/json');
-        const res = await fetch('/api/users/me', { headers });
+        const res = await fetch(buildApiUrl('/api/users/me'), { headers });
         if (res.ok) {
           const data = await res.json();
           setIsEnabled(data.discreet_mode_enabled || false);
@@ -59,7 +59,7 @@ export default function DiscreetModeCard({
       const headers = authHeaders('application/json');
       const newState = !isEnabled;
 
-      const res = await fetch('/api/users/me', {
+      const res = await fetch(buildApiUrl('/api/users/me'), {
         method: 'PUT',
         headers,
         body: JSON.stringify({

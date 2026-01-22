@@ -4,7 +4,7 @@ import SearchBar from '@/components/SearchBar';
 import GlobalSearchDropdown from '@/components/GlobalSearchDropdown';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
-import { authHeaders } from '@/lib/headers';
+import { authHeaders, buildApiUrl } from '@/lib/headers';
 import { Menu, X, Briefcase, User, LogOut, Settings, Bell, Search, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -45,7 +45,7 @@ const AccountQuickMenu = () => {
           const token = localStorage.getItem('token');
           const headers: Record<string,string> = {};
           Object.assign(headers, authHeaders());
-          const res = await fetch('/api/users/me', { headers });
+          const res = await fetch(buildApiUrl('/api/users/me'), { headers });
           if (res.ok) {
             const data: UserProfile = await res.json();
             setProfileData(data);
@@ -133,7 +133,7 @@ const Header = () => {
         const token = localStorage.getItem('token');
         const headers: Record<string,string> = {};
         Object.assign(headers, authHeaders());
-        const res = await fetch('/api/notifications', { headers });
+        const res = await fetch(buildApiUrl('/api/notifications'), { headers });
         if (!res.ok) return;
         const data = await res.json() as Notification[];
         if (!mounted) return;

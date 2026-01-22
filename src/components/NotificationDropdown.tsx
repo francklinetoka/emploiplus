@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, Trash2, Check } from "lucide-react";
-import { authHeaders } from '@/lib/headers';
+import { authHeaders, buildApiUrl } from '@/lib/headers';
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -35,7 +35,7 @@ export default function NotificationDropdown() {
     setLoading(true);
     try {
       const headers = authHeaders();
-      const res = await fetch('/api/notifications', { headers });
+      const res = await fetch(buildApiUrl('/api/notifications'), { headers });
       if (res.ok) {
         const data = await res.json();
         const notifs = data.success ? data.notifications : (Array.isArray(data) ? data : []);

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { buildApiUrl } from "@/lib/headers";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { ProfanityWarningModal } from "@/components/ui/ProfanityWarningModal";
 import { CommentsSection } from "@/components/CommentsSection";
@@ -126,7 +127,7 @@ const Newsfeed = () => {
       const fetchCandidateData = async () => {
         try {
           const headers = authHeaders('application/json');
-          const res = await fetch('/api/users/me', { headers });
+          const res = await fetch(buildApiUrl('/api/users/me'), { headers });
           if (res.ok) {
             const data = await res.json();
             setCandidateCompany(data.company || '');
@@ -160,9 +161,13 @@ const Newsfeed = () => {
       
       const offset = page * pageSize;
       const headers = authHeaders('application/json');
-      const res = await fetch(`/api/publications?limit=${pageSize}&offset=${offset}`, { headers });
+      const apiUrl = buildApiUrl(`/api/publications?limit=${pageSize}&offset=${offset}`);
+      const res = await fetch(apiUrl, { headers });
       
-      if (!res.ok) throw new Error('Erreur chargement publications');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.message || `HTTP ${res.status}: Erreur du serveur`);
+      }
       const data = await res.json();
       
       // Gérer la nouvelle structure de réponse
@@ -179,7 +184,8 @@ const Newsfeed = () => {
       setCurrentPage(page);
     } catch (error) {
       const err = error as Error;
-      toast.error("Erreur lors du chargement des publications");
+      console.error("Erreur publications:", err);
+      toast.error(err.message || "Erreur lors du chargement des publications");
     } finally {
       setLoading(false);
       setIsLoadingMore(false);
@@ -222,34 +228,34 @@ const Newsfeed = () => {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch('/api/jobs?limit=5');
+      const res = await fetch(buildApiUrl('/api/jobs?limit=5'));
       if (!res.ok) throw new Error('Erreur chargement offres');
       const data = await res.json();
       setJobs(Array.isArray(data) ? data.slice(0, 5) : []);
     } catch (error) {
-      console.error("Erreur chargement offres:", error);
+      console.warn("Erreur chargement offres:", error);
     }
   };
 
   const fetchFormations = async () => {
     try {
-      const res = await fetch('/api/formations?limit=5');
+      const res = await fetch(buildApiUrl('/api/formations?limit=5'));
       if (!res.ok) throw new Error('Erreur chargement formations');
       const data = await res.json();
       setFormations(Array.isArray(data) ? data.slice(0, 5) : []);
     } catch (error) {
-      console.error("Erreur chargement formations:", error);
+      console.warn("Erreur chargement formations:", error);
     }
   };
 
   const fetchCandidates = async () => {
     try {
-      const res = await fetch('/api/users/candidates?limit=5');
+      const res = await fetch(buildApiUrl('/api/users/candidates?limit=5'));
       if (!res.ok) throw new Error('Erreur chargement candidats');
       const data = await res.json();
       setCandidates(Array.isArray(data) ? data.slice(0, 5) : []);
     } catch (error) {
-      console.error("Erreur chargement candidats:", error);
+      console.warn("Erreur chargement candidats:", error);
     }
   };
 
@@ -257,7 +263,7 @@ const Newsfeed = () => {
     if (role !== 'company') return;
     try {
       const headers = authHeaders();
-      const res = await fetch('/api/company/stats', { headers });
+      const res = await fetch(buildApiUrl('/api/company/stats'), { headers });
       if (!res.ok) throw new Error('Erreur chargement stats');
       const data = await res.json();
       setCompanyStats({
@@ -278,7 +284,7 @@ const Newsfeed = () => {
       const headers = authHeaders();
       
       // Fetch candidate stats
-      const res = await fetch('/api/candidate/stats', { headers });
+      const res = await fetch(buildApiUrl('/api/candidate/stats'), { headers });
       if (!res.ok) throw new Error('Erreur chargement stats');
       const data = await res.json();
       
@@ -286,7 +292,7 @@ const Newsfeed = () => {
       let profileViewsWeek = 0;
       let profileViewsTotal = 0;
       try {
-        const profileStatsRes = await fetch('/api/users/me/profile-stats', { headers });
+        const profileStatsRes = await fetch(buildApiUrl('/api/users/me/profile-stats'), { headers });
         if (profileStatsRes.ok) {
           const profileStats = await profileStatsRes.json();
           profileViewsWeek = profileStats.profile_views_week || 0;
@@ -361,7 +367,7 @@ const Newsfeed = () => {
         image_url: image_url || null,
       };
 
-      const res = await fetch('/api/publications', {
+      const res = await fetch(buildApiUrl('/api/publications'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -407,7 +413,7 @@ const Newsfeed = () => {
           : p
       ));
 
-      const res = await fetch(`/api/publications/${publicationId}/like`, {
+      const res = await fetch(buildApiUrl(`/api/publications/${publicationId}/like`), {
         method: 'POST',
         headers: authHeaders('application/json'),
       });
@@ -453,7 +459,7 @@ const Newsfeed = () => {
     }
 
     try {
-      const res = await fetch(`/api/publications/${publicationId}/comments`, {
+      const res = await fetch(buildApiUrl(`/api/publications/${publicationId}/comments`), {
         headers: authHeaders(),
       });
       if (res.ok) {
@@ -497,7 +503,7 @@ const Newsfeed = () => {
   const handleDelete = async (publicationId: number) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/publications/${publicationId}`, {
+      const res = await fetch(buildApiUrl(`/api/publications/${publicationId}`), {
         method: 'DELETE',
         headers: authHeaders('application/json'),
       });

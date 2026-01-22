@@ -16,6 +16,7 @@ import Icon from '@/components/Icon';
 import { authHeaders } from '@/lib/headers';
 import CompanySearch from '@/components/CompanySearch';
 import DiscreetModeSettings from '@/components/DiscreetModeSettings';
+import CandidateDocumentsUpload from '@/components/CandidateDocumentsUpload';
 
 export default function CandidateProfile() {
   const { user, loading: authLoading } = useAuth();
@@ -1049,6 +1050,18 @@ export default function CandidateProfile() {
           )}
         </div>
       </Card>
+
+      {/* SECTION: Documents - Upload groupé */}
+      {user && (
+        <CandidateDocumentsUpload
+          userId={String(user.id)}
+          profileData={profileData}
+          onDocumentUploaded={() => {
+            // Recharger le profil après upload
+            fetchProfile();
+          }}
+        />
+      )}
     </div>
   );
 }

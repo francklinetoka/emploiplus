@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Loader2, Send, Heart, Share2, MessageCircle, Briefcase, Lightbulb, Trophy, Image as ImageIcon, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
-import { authHeaders } from '@/lib/headers';
+import { authHeaders, buildApiUrl } from '@/lib/headers';
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -59,7 +59,7 @@ const DashboardNewsfeed = () => {
     setLoading(true);
     try {
       try {
-        const res = await fetch('/api/publications');
+        const res = await fetch(buildApiUrl('/api/publications'));
         if (res.ok) {
           const data = await res.json();
           setNews(Array.isArray(data) ? data : []);
@@ -144,7 +144,7 @@ const DashboardNewsfeed = () => {
         formData.append('image', selectedImage);
       }
 
-      const res = await fetch('/api/publications', {
+      const res = await fetch(buildApiUrl('/api/publications'), {
         method: 'POST',
         headers: authHeaders(),
         body: formData,

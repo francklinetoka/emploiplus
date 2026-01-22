@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { buildApiUrl } from "@/lib/headers";
 
 interface Publication {
   id: number;
@@ -17,7 +18,7 @@ export default function Publications() {
   useEffect(() => {
     const fetchPublications = async () => {
       try {
-        const res = await fetch('/api/publications');
+        const res = await fetch(buildApiUrl('/api/publications'));
         if (!res.ok) {
           console.error('Failed to fetch publications', res.status);
           setItems([]);
