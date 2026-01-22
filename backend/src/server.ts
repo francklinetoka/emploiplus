@@ -276,8 +276,7 @@ else {
     // Ensure publications table exists for newsfeed
     pool.query(`CREATE TABLE IF NOT EXISTS publications (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
-    author_id INTEGER,
+    author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     content TEXT,
     image_url TEXT,
     category TEXT DEFAULT 'annonce',
@@ -289,7 +288,10 @@ else {
     comments_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    contains_unmoderated_profanity BOOLEAN DEFAULT false,
+    profanity_check_status TEXT DEFAULT 'pending',
+    moderation_status TEXT DEFAULT 'pending',
+    deleted_at TIMESTAMP NULL
   )`).catch((err) => console.error("Could not ensure publications table exists:", err));
     // Ensure `follows` table exists for user follow relationships
     pool.query(`CREATE TABLE IF NOT EXISTS follows (
