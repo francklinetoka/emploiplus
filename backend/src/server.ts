@@ -845,7 +845,7 @@ app.post("/api/jobs", userAuth, async (req, res) => {
 // Get a single job by id — public when published, or accessible to owning company/admin
 app.get('/api/jobs/:id', async (req, res) => {
     try {
-        const id = Number(req.params.id);
+        const id = req.params.id;
         if (!id)
             return res.status(400).json({ success: false, message: 'ID invalide' });
         // try to extract user from token if present to allow company owners to view their unpublished jobs
@@ -867,7 +867,7 @@ app.get('/api/jobs/:id', async (req, res) => {
         if (!rows || rows.length === 0)
             return res.status(404).json({ success: false, message: 'Offre introuvable' });
         const job = rows[0];
-        const isOwner = requesterId && job.company_id && Number(job.company_id) === Number(requesterId);
+        const isOwner = requesterId && job.company_id && job.company_id === requesterId;
         const isAdmin = requesterRole && String(requesterRole).toLowerCase() === 'admin';
         if (!job.published && !isOwner && !isAdmin) {
             return res.status(403).json({ success: false, message: 'Accès refusé' });
@@ -888,7 +888,7 @@ app.get('/api/jobs/:id', async (req, res) => {
 // Endpoint optimisé: ne retourne que la description complète, sans autres données
 app.get('/api/jobs/:id/description', async (req, res) => {
     try {
-        const id = Number(req.params.id);
+        const id = req.params.id;
         if (!id)
             return res.status(400).json({ success: false, message: 'ID invalide' });
 
@@ -1031,7 +1031,7 @@ app.post('/api/job-applications', userAuth, async (req, res) => {
                 await pool.query('INSERT INTO notifications (user_id, title, message) VALUES ($1, $2, $3)', [companyId, notifTitle, notifMsg]);
                 // push SSE event to connected company clients
                 try {
-                    const clients = sseClients.get(Number(companyId));
+                    const clients = sseClients.get(companyId);
                     if (clients && clients.size > 0) {
                         const payload = JSON.stringify(ins[0]);
                         for (const r of Array.from(clients)) {
@@ -1121,7 +1121,7 @@ app.get('/api/company/validations', userAuth, async (req, res) => {
 app.get('/api/admin/validations', adminAuth, async (req, res) => {
     try {
         const status = typeof req.query.status === 'string' ? req.query.status : null; // validated, accepted, declined
-        const companyId = req.query.company_id ? Number(req.query.company_id) : null;
+        const companyId = req.query.company_id ? String(req.query.company_id) : null;
         const params = [];
         let where = 'WHERE ja.status IN (\'validated\', \'accepted\', \'declined\')';
         if (status) {
@@ -1156,7 +1156,7 @@ app.post('/api/company/applications/:id/interview', userAuth, async (req, res) =
         const { rows: urows } = await pool.query('SELECT company_name, user_type FROM users WHERE id = $1', [companyId]);
         const companyUser = urows && urows[0] ? urows[0] : null;
         const companyName = companyUser && companyUser.company_name ? String(companyUser.company_name) : null;
-        const owns = (appRow.company_id && Number(appRow.company_id) === Number(companyId)) || (companyUser && String(companyUser.company_name || '').trim() === String(appRow.job_company || '').trim());
+        const owns = (appRow.company_id && appRow.company_id === companyId) || (companyUser && String(companyUser.company_name || '').trim() === String(appRow.job_company || '').trim());
         if (!owns)
             return res.status(403).json({ success: false, message: 'Accès refusé' });
         // create notification for applicant
@@ -1208,7 +1208,7 @@ app.post('/api/company/applications/:id/validate', userAuth, async (req, res) =>
         const { rows: urows } = await pool.query('SELECT company_name, user_type FROM users WHERE id = $1', [companyId]);
         const companyUser = urows && urows[0] ? urows[0] : null;
         const companyName = companyUser && companyUser.company_name ? String(companyUser.company_name) : null;
-        const owns = (appRow.company_id && Number(appRow.company_id) === Number(companyId)) || (companyUser && String(companyUser.company_name || '').trim() === String(appRow.job_company || '').trim());
+        const owns = (appRow.company_id && appRow.company_id === companyId) || (companyUser && String(companyUser.company_name || '').trim() === String(appRow.job_company || '').trim());
         if (!owns)
             return res.status(403).json({ success: false, message: 'Accès refusé' });
         // mark application as validated
@@ -1239,7 +1239,7 @@ app.post('/api/applications/:id/accept', userAuth, async (req, res) => {
         if (!appRows || appRows.length === 0)
             return res.status(404).json({ success: false, message: 'Candidature introuvable' });
         const appRow = appRows[0];
-        if (Number(appRow.applicant_id) !== Number(userId))
+        if (appRow.applicant_id !== userId)
             return res.status(403).json({ success: false, message: 'Accès refusé' });
         // Only allow accept if status is validated or submitted
         await pool.query('UPDATE job_applications SET status = $1 WHERE id = $2', ['accepted', id]);
@@ -1268,7 +1268,7 @@ app.post('/api/applications/:id/decline', userAuth, async (req, res) => {
         if (!appRows || appRows.length === 0)
             return res.status(404).json({ success: false, message: 'Candidature introuvable' });
         const appRow = appRows[0];
-        if (Number(appRow.applicant_id) !== Number(userId))
+        if (appRow.applicant_id !== userId)
             return res.status(403).json({ success: false, message: 'Accès refusé' });
         await pool.query('UPDATE job_applications SET status = $1 WHERE id = $2', ['declined', id]);
         // notify company
@@ -1315,7 +1315,7 @@ app.patch("/api/jobs/:id/publish", userAuth, async (req, res) => {
             if (!jrows || jrows.length === 0)
                 return res.status(404).json({ success: false });
             const jobCompanyId = jrows[0].company_id;
-            if (Number(jobCompanyId) !== Number(req.userId))
+            if (jobCompanyId !== req.userId)
                 return res.status(403).json({ success: false, message: 'Accès refusé' });
         }
         if (published) {

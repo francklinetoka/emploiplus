@@ -9,21 +9,21 @@ import { calculateMatchScore } from './matchingService.js';
 
 // Types
 export interface Follow {
-  id: number;
-  follower_id: number;
-  following_id: number;
+  id: string;
+  follower_id: string;
+  following_id: string;
   created_at: string;
 }
 
 export interface Block {
-  id: number;
-  user_id: number;
-  blocked_user_id: number;
+  id: string;
+  user_id: string;
+  blocked_user_id: string;
   created_at: string;
 }
 
 export interface UserProfile {
-  id: number;
+  id: string;
   full_name: string;
   profile_image_url?: string;
   bio?: string;
@@ -108,7 +108,7 @@ export async function unfollowUser(
 }
 
 // Get followers count and list
-export async function getFollowers(user_id: number): Promise<NetworkStats> {
+export async function getFollowers(user_id: string): Promise<NetworkStats> {
   const followersResult = await pool.query(
     'SELECT follower_id FROM follows WHERE following_id = $1 ORDER BY created_at DESC',
     [user_id]
@@ -240,7 +240,7 @@ export async function getSuggestions(
 
 // Get network activity
 export async function getNetworkActivity(
-  user_id: number,
+  user_id: string,
   limit: number = 20
 ): Promise<NetworkActivity[]> {
   try {
@@ -303,8 +303,8 @@ export async function getNetworkActivity(
 
 // Block a user
 export async function blockUser(
-  user_id: number,
-  blocked_user_id: number
+  user_id: string,
+  blocked_user_id: string
 ): Promise<Block> {
   // Check if already blocked
   const existing = await pool.query(
@@ -335,8 +335,8 @@ export async function blockUser(
 
 // Unblock a user
 export async function unblockUser(
-  user_id: number,
-  blocked_user_id: number
+  user_id: string,
+  blocked_user_id: string
 ): Promise<boolean> {
   const result = await pool.query(
     'DELETE FROM blocks WHERE user_id = $1 AND blocked_user_id = $2',
@@ -348,8 +348,8 @@ export async function unblockUser(
 
 // Check if following
 export async function isFollowing(
-  follower_id: number,
-  following_id: number
+  follower_id: string,
+  following_id: string
 ): Promise<boolean> {
   const result = await pool.query(
     'SELECT * FROM follows WHERE follower_id = $1 AND following_id = $2',
@@ -360,7 +360,7 @@ export async function isFollowing(
 }
 
 // Get followed users
-export async function getFollowingUsers(user_id: number): Promise<UserProfile[]> {
+export async function getFollowingUsers(user_id: string): Promise<UserProfile[]> {
   const result = await pool.query(
     `SELECT u.id, u.full_name, u.profile_image_url, u.bio, u.profession, u.user_type, u.company_name, u.skills, u.experience_years
      FROM users u
@@ -374,7 +374,7 @@ export async function getFollowingUsers(user_id: number): Promise<UserProfile[]>
 }
 
 // Get follower users
-export async function getFollowerUsers(user_id: number): Promise<UserProfile[]> {
+export async function getFollowerUsers(user_id: string): Promise<UserProfile[]> {
   const result = await pool.query(
     `SELECT u.id, u.full_name, u.profile_image_url, u.bio, u.profession, u.user_type, u.company_name, u.skills, u.experience_years
      FROM users u

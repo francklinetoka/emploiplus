@@ -43,14 +43,35 @@ postgresql://postgres.gcwqiplhiwbicnisnaay:G9yGu6bLRYBQtUQK@aws-1-eu-central-1.p
 
 
 
- Avertissements (non-bloquants):
+ 
 
-Chunk FAQ.tsx - Importé statiquement et dynamiquement (minor)
-Gros fichier - index-CQBukj1k.js (3.2 MB) est volumineux
-💡 Pour optimiser:
-
-Faire du code-splitting pour réduire le bundle
-Utiliser lazy loading pour les routes l
+Modificationions de la base de données : Migration des IDs entiers vers UUID dans Supabase.   
 
 
-test
+ Context: Database migration from Integer IDs to UUIDs in Supabase.
+
+Database Changes:
+
+All id primary keys in tables users, publications, jobs, notifications, comments, and likes are now of type uuid.
+
+All foreign keys now use uuid and point to auth.users(id).
+
+In publications table: renamed user_id to author_id.
+
+In jobs table: renamed user_id to company_id.
+
+In job_applications table: renamed user_id to applicant_id.
+
+Your Task:
+
+Update all Supabase queries (select, insert, update, delete) to use uuid strings instead of integers.
+
+Ensure author_id, company_id, and applicant_id are used instead of user_id where applicable.
+
+Remove all parseInt(), Number(), or + unary operators used on IDs.
+
+Update TypeScript interfaces/types so that id and foreign key fields are string instead of number.
+
+Ensure auth.uid() or the ID from supabase.auth.getUser() is passed to all insert operations.
+
+Files to scan: All API services, Supabase hooks, and form components

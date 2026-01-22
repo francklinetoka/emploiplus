@@ -1,4 +1,4 @@
-export async function sendInteraction(payload: { user_id?: number | null; service?: string | null; event_type?: string; payload?: any }) {
+export async function sendInteraction(payload: { user_id?: string | null; service?: string | null; event_type?: string; payload?: any }) {
   try {
     await fetch('/api/interactions', {
       method: 'POST',

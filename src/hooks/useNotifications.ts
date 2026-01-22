@@ -8,15 +8,15 @@ import { toast } from "sonner";
 import { authHeaders } from "@/lib/headers";
 
 export interface Notification {
-  id: number;
-  user_id: number;
-  sender_id: number;
+  id: string;
+  user_id: string;
+  sender_id: string;
   sender_name: string;
   sender_profile_image?: string;
   type: 'like' | 'comment' | 'interview' | 'message' | 'application';
   content: string;
-  publication_id?: number;
-  job_id?: number;
+  publication_id?: string;
+  job_id?: string;
   created_at: string;
   read: boolean;
 }

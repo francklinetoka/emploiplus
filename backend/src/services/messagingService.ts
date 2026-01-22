@@ -89,7 +89,7 @@ export async function getOrCreateConversation(
 
 // Get conversations for a user
 export async function getConversations(
-  user_id: number,
+  user_id: string,
   limit: number = 50
 ): Promise<Conversation[]> {
   try {
