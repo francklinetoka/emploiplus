@@ -263,7 +263,7 @@ export async function getNetworkActivity(
       `SELECT 
         'publication' as type,
         p.id::text,
-        p.user_id,
+        p.author_id,
         u.full_name,
         u.profile_image_url,
         u.profession,
@@ -271,8 +271,8 @@ export async function getNetworkActivity(
         p.content,
         p.created_at as timestamp
        FROM publications p
-       JOIN users u ON p.user_id = u.id
-       WHERE p.user_id IN (${placeholders}) AND p.is_active = true
+       JOIN users u ON p.author_id = u.id
+       WHERE p.author_id IN (${placeholders}) AND p.is_active = true
        ORDER BY p.created_at DESC
        LIMIT ${limit}`,
       followingIds
@@ -282,7 +282,7 @@ export async function getNetworkActivity(
       id: row.id,
       type: row.type,
       actor: {
-        id: row.user_id,
+        id: row.author_id,
         full_name: row.full_name,
         profile_image_url: row.profile_image_url,
         profession: row.profession,

@@ -198,7 +198,7 @@ const Jobs = () => {
         <JobSearchCompact onFilterChange={setFilters} />
 
         {/* Main Content with Two Columns */}
-        <div className="container py-12 px-4">
+        <div className="container py-6 px-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* LEFT COLUMN - FORMATIONS & CTA */}
             <div className="lg:col-span-3">
@@ -433,7 +433,7 @@ const Jobs = () => {
       <JobSearchCompact onFilterChange={setFilters} />
 
       {/* Main Content with Three Columns */}
-      <div className="container py-12 px-4">
+      <div className="container py-6 px-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* LEFT COLUMN - PROFILE ONLY */}
           <div className="lg:col-span-2">

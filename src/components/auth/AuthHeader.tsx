@@ -1,6 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Briefcase } from "lucide-react";
 
 export function AuthHeader() {
   const location = useLocation();
@@ -12,10 +11,9 @@ export function AuthHeader() {
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo/Brand */}
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80">
-            <Briefcase className="h-6 w-6 text-primary-foreground" />
+          <div className="flex h-10 w-10 items-center justify-center">
+            <img src="/Logo.png" alt="Logo Emploi+" className="h-full w-full" />
           </div>
-          <span className="font-bold text-lg">Emploi+</span>
         </Link>
 
         {/* Navigation Button */}
