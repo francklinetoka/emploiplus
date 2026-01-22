@@ -9,6 +9,7 @@ import { Briefcase, ExternalLink, ChevronDown, ChevronUp, MapPin, Calendar, Buil
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { BottomNavigation } from "@/components/layout/BottomNavigation";
 
 import JobSearchCompact from "@/components/jobs/JobSearchCompact";
 import { toast } from 'sonner';
@@ -50,6 +51,7 @@ const Jobs = () => {
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [expandFilters, setExpandFilters] = useState(false);
   const loaderRef = useRef<HTMLDivElement>(null);
+  const [mobileView, setMobileView] = useState<"left" | "center" | "right">("center");
 
   // Fetch initial jobs when filters change
   useEffect(() => {
@@ -212,9 +214,9 @@ const Jobs = () => {
                   <div className="space-y-3">
                     {formations.length > 0 ? (
                       formations.map((formation: Record<string, unknown>) => (
-                        <Link key={formation.id} to={`/formations`} className="block p-3 hover:bg-muted rounded-lg transition-colors cursor-pointer border-l-4 border-secondary">
-                          <p className="font-semibold text-sm line-clamp-1">{formation.title || formation.name || "Formation"}</p>
-                          <p className="text-xs text-muted-foreground">{formation.provider || "Formation"}</p>
+                        <Link key={String(formation.id)} to={`/formations`} className="block p-3 hover:bg-muted rounded-lg transition-colors cursor-pointer border-l-4 border-secondary">
+                          <p className="font-semibold text-sm line-clamp-1">{String(formation.title || formation.name || "Formation")}</p>
+                          <p className="text-xs text-muted-foreground">{String(formation.provider || "Formation")}</p>
                           <p className="text-xs text-secondary mt-1">⏱️ Découvrez le contenu</p>
                         </Link>
                       ))
@@ -433,10 +435,12 @@ const Jobs = () => {
       <JobSearchCompact onFilterChange={setFilters} />
 
       {/* Main Content with Three Columns */}
-      <div className="container py-6 px-4">
+      <div className="container py-6 px-4 pb-24 md:pb-0">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* LEFT COLUMN - PROFILE ONLY */}
-          <div className="lg:col-span-2">
+          <div className={`${
+            mobileView === "center" || mobileView === "right" ? "hidden" : ""
+          } lg:col-span-2 lg:block`}>
             <div className="space-y-6 sticky top-24">
               {/* Profile Card */}
               <Card className="p-6 border-0 shadow-md">
@@ -482,7 +486,9 @@ const Jobs = () => {
           </div>
 
           {/* MIDDLE COLUMN - JOBS LIST & FILTERS */}
-          <div className="lg:col-span-7">
+          <div className={`${
+            mobileView === "left" || mobileView === "right" ? "hidden" : ""
+          } lg:col-span-7 lg:block`}>
             {/* Search and Filters Section */}
             <Card className="p-4 border-0 shadow-md mb-6">
               <div className="flex flex-col gap-3">
@@ -706,7 +712,9 @@ const Jobs = () => {
           </div>
 
           {/* RIGHT COLUMN - RECOMMENDATIONS */}
-          <div className="lg:col-span-3">
+          <div className={`${
+            mobileView === "left" || mobileView === "center" ? "hidden" : ""
+          } lg:col-span-3 lg:block`}>
             <div className="space-y-6 sticky top-24">
               {/* Formations recommandées */}
               <Card className="p-6 border-0 shadow-md">
@@ -717,9 +725,9 @@ const Jobs = () => {
                 <div className="space-y-3">
                   {formations.length > 0 ? (
                     formations.map((formation: Record<string, unknown>) => (
-                      <Link key={formation.id} to={`/formations`} className="block p-3 hover:bg-muted rounded-lg transition-colors cursor-pointer border-l-4 border-secondary">
-                        <p className="font-semibold text-sm line-clamp-1">{formation.title || formation.name || "Formation"}</p>
-                        <p className="text-xs text-muted-foreground">{formation.provider || "Formation"}</p>
+                      <Link key={String(formation.id)} to={`/formations`} className="block p-3 hover:bg-muted rounded-lg transition-colors cursor-pointer border-l-4 border-secondary">
+                        <p className="font-semibold text-sm line-clamp-1">{String(formation.title || formation.name || "Formation")}</p>
+                        <p className="text-xs text-muted-foreground">{String(formation.provider || "Formation")}</p>
                         <p className="text-xs text-secondary mt-1">⏱️ Découvrez le contenu</p>
                       </Link>
                     ))
@@ -746,12 +754,12 @@ const Jobs = () => {
                       .filter((c: Record<string, unknown>) => c.user_type === 'company')
                       .slice(0, 5)
                       .map((company: Record<string, unknown>) => (
-                        <Link key={company.id} to={`/utilisateur/${company.id}`} className="block p-3 hover:bg-purple-100 rounded-lg transition-colors cursor-pointer border-l-4 border-purple-500 hover:border-purple-600">
+                        <Link key={String(company.id)} to={`/utilisateur/${String(company.id)}`} className="block p-3 hover:bg-purple-100 rounded-lg transition-colors cursor-pointer border-l-4 border-purple-500 hover:border-purple-600">
                           <div className="flex items-start gap-3">
                             <Avatar className="h-10 w-10 flex-shrink-0 border border-purple-200">
-                              <AvatarImage src={company.profile_image_url} alt={company.company_name} />
+                              <AvatarImage src={String(company.profile_image_url)} alt={String(company.company_name)} />
                               <AvatarFallback className="text-xs bg-purple-500 text-white">
-                                {(company.company_name || "")
+                                {(String(company.company_name) || "")
                                   .split(" ")
                                   .map((n: string) => n[0])
                                   .join("")
@@ -760,7 +768,7 @@ const Jobs = () => {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-sm line-clamp-1 text-gray-900">{company.company_name}</p>
+                              <p className="font-semibold text-sm line-clamp-1 text-gray-900">{String(company.company_name)}</p>
                               <p className="text-xs text-gray-600 line-clamp-1">Entreprise</p>
                               <p className="text-xs text-purple-600 mt-1 font-semibold">⭐ Offres disponibles</p>
                             </div>
@@ -800,6 +808,20 @@ const Jobs = () => {
           </div>
         </div>
       </div>
+
+      {/* Navigation mobile en bas */}
+      <BottomNavigation
+        activeView={mobileView}
+        onLeftClick={() => setMobileView(mobileView === "left" ? "center" : "left")}
+        onCenterClick={() => setMobileView("center")}
+        onRightClick={() => setMobileView(mobileView === "right" ? "center" : "right")}
+        leftLabel="Profil"
+        centerLabel="Offres"
+        rightLabel="Conseils"
+        leftIcon={<User className="h-5 w-5" />}
+        centerIcon={<Briefcase className="h-5 w-5" />}
+        rightIcon={<BookOpen className="h-5 w-5" />}
+      />
     </div>
   );
 };

@@ -14,8 +14,9 @@ import { FormationListItem } from "@/components/formations/FormationListItem";
 import { FormationSearchInput } from "@/components/formations/FormationSearchInput";
 import { useFormationSearch } from "@/hooks/useFormationSearch";
 import { ProfileSidebar } from "@/components/layout/ProfileSidebar";
+import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { toast } from "sonner";
-import { Clock, Users, DollarSign, BookOpen, Calendar, AlertCircle, CheckCircle, Search, Briefcase } from "lucide-react";
+import { Clock, Users, DollarSign, BookOpen, Calendar, AlertCircle, CheckCircle, Search, Briefcase, User, TrendingUp } from "lucide-react";
 
 interface Formation {
   id: number;
@@ -51,6 +52,7 @@ export default function Formations() {
   const [hasMore, setHasMore] = useState(true);
   const [expandedFormationId, setExpandedFormationId] = useState<number | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
+  const [mobileView, setMobileView] = useState<"left" | "center" | "right">("center");
 
   // Use optimized search hook for debouncing
   const { localInput, debouncedSearch, handleInputChange, showMinCharsWarning } = useFormationSearch({
@@ -222,7 +224,7 @@ export default function Formations() {
   // --- RENDU PRINCIPAL AVEC LA RECHERCHE ---
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 pb-24 md:pb-0">
         {/* Main Content with Sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* LEFT COLUMN - SIDEBAR (only visible for non-authenticated users) */}
@@ -282,7 +284,9 @@ export default function Formations() {
           )}
 
           {/* Center Content - Formations */}
-          <div className={user ? "lg:col-span-6" : "lg:col-span-9"}>
+          <div className={`${
+            mobileView === "left" || mobileView === "right" ? "hidden" : ""
+          } ${user ? "lg:col-span-6" : "lg:col-span-9"} lg:block`}>
             {/* Search Bar - Improved Design */}
             <Card className="p-6 border-0 shadow-md mb-6">
               <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
@@ -371,7 +375,9 @@ export default function Formations() {
 
           {/* RIGHT COLUMN - Sidebar (only for authenticated users) */}
           {user && (
-            <div className="lg:col-span-3">
+            <div className={`${
+              mobileView === "left" || mobileView === "center" ? "hidden" : ""
+            } lg:col-span-3 lg:block`}>
               <div className="space-y-6 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto pr-2">
                 {/* Mes formations en cours */}
                 <Card className="p-6 border-0 shadow-md bg-gradient-to-br from-blue-50 to-white border-l-4 border-blue-500">
@@ -426,6 +432,22 @@ export default function Formations() {
           )}
         </div>
       </div>
+
+      {/* Navigation mobile en bas */}
+      {user && (
+        <BottomNavigation
+          activeView={mobileView}
+          onLeftClick={() => setMobileView(mobileView === "left" ? "center" : "left")}
+          onCenterClick={() => setMobileView("center")}
+          onRightClick={() => setMobileView(mobileView === "right" ? "center" : "right")}
+          leftLabel="Profil"
+          centerLabel="Formations"
+          rightLabel="Conseils"
+          leftIcon={<User className="h-5 w-5" />}
+          centerIcon={<BookOpen className="h-5 w-5" />}
+          rightIcon={<TrendingUp className="h-5 w-5" />}
+        />
+      )}
     </div>
   );
 }

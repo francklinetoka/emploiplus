@@ -17,8 +17,9 @@ import { ReactionBar } from "@/components/ReactionBar";
 import { EditPublicationModal } from "@/components/EditPublicationModal";
 import DiscreetModeCard from "@/components/DiscreetModeCard";
 import PublicationSkeleton from "@/components/PublicationSkeleton";
+import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { toast } from "sonner";
-import { Loader2, Send, ThumbsUp, Share2, MessageCircle, Image as ImageIcon, X, Edit2, Trash2, FileText, BookOpen, Briefcase, User, MoreVertical, Building2 } from "lucide-react";
+import { Loader2, Send, ThumbsUp, Share2, MessageCircle, Image as ImageIcon, X, Edit2, Trash2, FileText, BookOpen, Briefcase, User, MoreVertical, Building2, Users, TrendingUp } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -116,6 +117,9 @@ const Newsfeed = () => {
   const [hasMorePublications, setHasMorePublications] = useState(true);
   const feedContainerRef = useRef<HTMLDivElement | null>(null);
   const pageSize = 10;
+  
+  // États pour la navigation mobile
+  const [mobileView, setMobileView] = useState<"left" | "center" | "right" | "full">("center");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -585,10 +589,12 @@ const Newsfeed = () => {
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-24 md:pb-0">
           
-          {/* COLONNE GAUCHE - PROFIL */}
-          <div className="lg:col-span-3">
+          {/* COLONNE GAUCHE - PROFIL - Visible sur desktop et mobile (via modal bottom nav) */}
+          <div className={`${
+            mobileView === "center" || mobileView === "right" ? "hidden" : ""
+          } lg:col-span-3 lg:block`}>
             <Card className="p-6 border-0 shadow-md sticky top-24">
               {/* Photo et infos de base */}
               <div className="text-center mb-6">
@@ -757,7 +763,9 @@ const Newsfeed = () => {
           </div>
 
           {/* COLONNE CENTRALE - FLUX */}
-          <div className="lg:col-span-6">
+          <div className={`${
+            mobileView === "left" || mobileView === "right" ? "hidden" : ""
+          } lg:col-span-6 lg:block`}>
             <div 
               ref={feedContainerRef}
               className="space-y-6 max-h-[calc(100vh-120px)] overflow-y-auto pr-4"
@@ -1122,7 +1130,9 @@ const Newsfeed = () => {
           </div>
 
           {/* COLONNE DROITE - SUGGESTIONS & TENDANCES */}
-          <div className="lg:col-span-3">
+          <div className={`${
+            mobileView === "left" || mobileView === "center" ? "hidden" : ""
+          } lg:col-span-3 lg:block`}>
             <div className="space-y-6 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto pr-2">
               {/* Bouton Mes Publications - Disponible pour tous */}
               <Button asChild className="w-full" size="lg">
@@ -1401,6 +1411,20 @@ const Newsfeed = () => {
           setEditingPublication(null);
         }}
         onSuccess={handleEditSuccess}
+      />
+
+      {/* Navigation mobile en bas */}
+      <BottomNavigation
+        activeView={mobileView}
+        onLeftClick={() => setMobileView(mobileView === "left" ? "center" : "left")}
+        onCenterClick={() => setMobileView("center")}
+        onRightClick={() => setMobileView(mobileView === "right" ? "center" : "right")}
+        leftLabel="Profil"
+        centerLabel="Fil"
+        rightLabel="Infos"
+        leftIcon={<User className="h-5 w-5" />}
+        centerIcon={<TrendingUp className="h-5 w-5" />}
+        rightIcon={<Briefcase className="h-5 w-5" />}
       />
     </div>
   );
