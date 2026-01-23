@@ -242,4 +242,100 @@ router.post('/user/login', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Sync Google OAuth User
+ * POST /api/auth/sync-google
+ * Called by frontend after Google OAuth callback
+ * 
+ * Body:
+ * {
+ *   id: string (Supabase user ID)
+ *   email: string
+ *   full_name: string
+ *   profile_image_url?: string
+ *   user_type: 'candidate' | 'company' (from URL param)
+ * }
+ */
+router.post('/sync-google', async (req: Request, res: Response) => {
+  try {
+    const { id, email, full_name, profile_image_url, user_type = 'candidate' } = req.body;
+
+    if (!id || !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID et email requis',
+      });
+    }
+
+    // Validate user_type
+    const validUserTypes = ['candidate', 'company'];
+    const normalizedUserType = validUserTypes.includes(user_type) ? user_type : 'candidate';
+    
+    console.log(`[Google Sync] Processing user: ${email}, type: ${normalizedUserType}`);
+
+    // Check if user exists
+    const { rows: existing } = await pool.query(
+      'SELECT id, user_type FROM users WHERE email = $1',
+      [email]
+    );
+
+    let user;
+
+    if (existing.length > 0) {
+      // Update existing user with new info but preserve user_type if already set
+      const existingUserType = existing[0].user_type || normalizedUserType;
+      
+      const { rows: updatedUser } = await pool.query(
+        `UPDATE users 
+         SET full_name = COALESCE($1, full_name),
+             profile_image_url = COALESCE($2, profile_image_url),
+             last_login = NOW()
+         WHERE email = $3
+         RETURNING id, email, full_name, user_type, profile_image_url`,
+        [full_name || existing[0].full_name, profile_image_url, email]
+      );
+      user = updatedUser[0];
+      console.log(`[Google Sync] ✅ Updated existing user: ${email}`);
+    } else {
+      // Create new user from Google OAuth
+      const { rows: newUser } = await pool.query(
+        `INSERT INTO users (id, email, full_name, user_type, profile_image_url, created_at)
+         VALUES ($1, $2, $3, $4, $5, NOW())
+         RETURNING id, email, full_name, user_type, profile_image_url`,
+        [id, email, full_name || email.split('@')[0], normalizedUserType, profile_image_url]
+      );
+      user = newUser[0];
+      console.log(`[Google Sync] ✅ Created new user: ${email} as ${normalizedUserType}`);
+    }
+
+    // Generate JWT token with user_type
+    const token = jwt.sign(
+      { id: user.id, role: user.user_type || normalizedUserType },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    console.log(`[Google Sync] ✅ Token generated for user: ${email}`);
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        user_type: user.user_type,
+        profile_image_url: user.profile_image_url,
+      },
+    });
+  } catch (err) {
+    console.error('[Google Sync] ❌ Error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la synchronisation Google',
+      error: String(err),
+    });
+  }
+});
+
 export default router;

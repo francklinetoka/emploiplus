@@ -192,6 +192,42 @@ export const useSupabaseAuth = () => {
     return data.session.access_token;
   };
 
+  // Sign in with Google OAuth
+  const signInWithGoogle = async () => {
+    try {
+      setError(null);
+      
+      // Determine the redirect URL based on environment
+      const isProduction = window.location.hostname.includes('vercel.app') || 
+                          window.location.hostname.includes('emploiplus');
+      const redirectTo = isProduction 
+        ? 'https://emploiplus.vercel.app/auth/callback'
+        : `${window.location.origin}/auth/callback`;
+
+      const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (oauthError) {
+        setError(oauthError.message);
+        return { error: oauthError, user: null };
+      }
+
+      return { error: null, user: data.user || null };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erreur de connexion Google';
+      setError(message);
+      return { error: { message }, user: null };
+    }
+  };
+
   return {
     user,
     session,
@@ -200,6 +236,7 @@ export const useSupabaseAuth = () => {
     signUp,
     signIn,
     signOut,
+    signInWithGoogle,
     getToken,
     supabase, // Export supabase client for direct use if needed
   };
