@@ -249,11 +249,11 @@ export default function Formations() {
           <div className={`${
             mobileView === "left" || mobileView === "right" ? "hidden" : ""
           } ${user ? "lg:col-span-6" : "lg:col-span-9"} lg:block`}>
-            {/* Search Bar - Improved Design */}
-            <Card className="p-6 border-0 shadow-md mb-6">
-              <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                <Search className="h-5 w-5 text-primary" />
-                Rechercher une formation
+            {/* Search Bar - Fixed/Sticky on top */}
+            <Card className="p-6 border-0 shadow-md mb-6 sticky top-24 md:relative bg-white md:bg-gray-50 md:shadow-none md:border-0 z-10">
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2 md:block">
+                <Search className="h-5 w-5 text-primary md:hidden" />
+                <span className="hidden md:inline">Rechercher une formation</span>
               </h3>
               <div className="space-y-3">
                 {/* Main search bar with debouncing */}

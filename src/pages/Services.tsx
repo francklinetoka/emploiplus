@@ -33,7 +33,8 @@ import { PWALayout } from "@/components/layout/PWALayout";
 
 export default function Services() {
   const { user } = useAuth();
-  const { isCompany } = useUserRole();
+  const { role } = useUserRole();
+  const isCompany = role === "company";
   const [activeTab, setActiveTab] = useState<
     "optimization" | "tools" | "visual" | "digital"
   >("optimization");
@@ -72,7 +73,7 @@ export default function Services() {
 
     
 
-      <div className="bg-slate-50 py-9">
+      <div className="bg-slate-50 py-9 pb-24 md:pb-9">
        
         <div className="w-full px-4">
           {/* Mobile Navigation - Top Icons (4 per row) */}

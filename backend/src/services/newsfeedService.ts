@@ -133,13 +133,12 @@ export class NewsfeedService {
           u.profile_image_url,
           u.user_type,
           u.company_id as author_company_id,
-          u.is_certified,
+          u.is_verified,
           u.discreet_mode_enabled,
-          u.account_status,
           u.is_blocked,
           u.is_deleted,
           u.job_title,
-          CASE WHEN u.is_certified = true THEN 0 ELSE 1 END as certification_priority
+          CASE WHEN u.is_verified = true THEN 0 ELSE 1 END as certification_priority
         FROM publications p
         LEFT JOIN users u ON p.author_id = u.id
         WHERE 
@@ -265,18 +264,12 @@ export class NewsfeedService {
     // L'auteur ne doit pas être:
     // 1. Bloqué (is_blocked = true)
     // 2. Supprimé (is_deleted = true)
-    // 3. En statut autre que 'active' (account_status != 'active')
-    // 4. En suspension temporaire
 
     if (publication.is_blocked === true) {
       return false;
     }
 
     if (publication.is_deleted === true) {
-      return false;
-    }
-
-    if (publication.account_status !== 'active') {
       return false;
     }
 
