@@ -383,7 +383,6 @@ export class NewsfeedService {
         p.is_active = true 
         AND p.deleted_at IS NULL
         AND p.contains_unmoderated_profanity = false
-        AND u.account_status = 'active'
         AND u.is_blocked = false
         AND u.is_deleted = false
     `;
