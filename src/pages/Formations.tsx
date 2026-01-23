@@ -249,34 +249,8 @@ export default function Formations() {
                   </Button>
                 </Card>
 
-                {/* Catégories populaires */}
-                <Card className="p-6 border-0 shadow-md">
-                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-primary" />
-                    Catégories populaires
-                  </h3>
-                  <div className="space-y-2">
-                    {['Technologie', 'Business', 'Design', 'Marketing', 'Langues'].map((cat) => (
-                      <button key={cat} className="block w-full text-left p-2 hover:bg-muted rounded-lg transition-colors text-sm text-gray-700 hover:text-primary">
-                        • {cat}
-                      </button>
-                    ))}
-                  </div>
-                </Card>
-
-                {/* Conseils pour bien choisir */}
-                <Card className="p-6 border-0 shadow-md bg-gradient-to-br from-yellow-50 to-white border-l-4 border-yellow-500">
-                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5 text-yellow-600" />
-                    Conseils
-                  </h3>
-                  <ul className="space-y-2 text-xs text-gray-700">
-                    <li>✓ Vérifiez le niveau requis avant de vous inscrire</li>
-                    <li>✓ Consultez les avis d'autres apprenants</li>
-                    <li>✓ Respectez les délais d'inscription</li>
-                    <li>✓ Planifiez votre emploi du temps</li>
-                  </ul>
-                </Card>
+                {/* Catégories populaires - Hidden for non-authenticated users */}
+                {/* Conseils pour bien choisir - Hidden for non-authenticated users */}
               </div>
             </div>
           ) : (

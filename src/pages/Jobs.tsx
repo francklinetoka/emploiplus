@@ -203,50 +203,9 @@ const Jobs = () => {
         {/* Main Content with Two Columns */}
         <div className="container py-6 px-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* LEFT COLUMN - FORMATIONS & CTA */}
-            <div className="lg:col-span-3">
+            {/* LEFT COLUMN - HIDDEN FOR NON-AUTHENTICATED USERS */}
+            <div className="lg:col-span-3 hidden lg:block">
               <div className="space-y-6 sticky top-24">
-                {/* Formations Section */}
-                <Card className="p-6 border-0 shadow-md">
-                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-secondary" />
-                    Formations disponibles
-                  </h3>
-                  <div className="space-y-3">
-                    {formations.length > 0 ? (
-                      formations.map((formation: Record<string, unknown>) => (
-                        <Link key={String(formation.id)} to={`/formations`} className="block p-3 hover:bg-muted rounded-lg transition-colors cursor-pointer border-l-4 border-secondary">
-                          <p className="font-semibold text-sm line-clamp-1">{String(formation.title || formation.name || "Formation")}</p>
-                          <p className="text-xs text-muted-foreground">{String(formation.provider || "Formation")}</p>
-                          <p className="text-xs text-secondary mt-1">⏱️ Découvrez le contenu</p>
-                        </Link>
-                      ))
-                    ) : (
-                      <p className="text-xs text-muted-foreground">Aucune formation disponible</p>
-                    )}
-                  </div>
-                  <Button asChild variant="outline" className="w-full mt-4" size="sm">
-                    <Link to="/formations">
-                      Découvrir toutes les formations
-                    </Link>
-                  </Button>
-                </Card>
-
-                {/* Call to action */}
-                <Card className="p-6 border-0 shadow-md bg-gradient-to-br from-blue-50 to-blue-100">
-                  <h3 className="font-bold text-lg mb-4">Accédez à plus de fonctionnalités</h3>
-                  <p className="text-sm text-gray-700 mb-4">Connectez-vous pour explorer les offres d'emploi et postuler directement.</p>
-                  <Button asChild className="w-full mb-2">
-                    <Link to="/connexion">
-                      Se connecter
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link to="/inscription">
-                      Créer un compte
-                    </Link>
-                  </Button>
-                </Card>
               </div>
             </div>
 
@@ -788,24 +747,7 @@ const Jobs = () => {
                 </Button>
               </Card>
 
-              {/* Conseils de candidature */}
-              <Card className="p-6 border-0 shadow-md bg-gradient-to-br from-amber-50 to-white border-l-4 border-amber-500">
-                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                  <Briefcase className="h-5 w-5 text-amber-600" />
-                  💡 Conseil du jour
-                </h3>
-                <div className="space-y-3 text-sm">
-                  <p className="text-gray-700 leading-relaxed">
-                    Personnalisez votre lettre de motivation pour chaque offre. Les recruteurs apprécient les candidatures qui montrent que vous avez recherché l'entreprise.
-                  </p>
-                  <div className="pt-3 border-t border-amber-200">
-                    <p className="font-semibold text-amber-700 mb-2">✨ Conseil Pro:</p>
-                    <p className="text-xs text-gray-600">
-                      Mentionnez des projets ou réalisations spécifiques qui correspondent aux besoins du poste.
-                    </p>
-                  </div>
-                </div>
-              </Card>
+              {/* Conseils de candidature - Hidden for non-authenticated users */}
             </div>
           </div>
         </div>

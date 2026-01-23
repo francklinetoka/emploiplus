@@ -29,7 +29,7 @@ const Home = () => {
 
       {/* Mission & Values */}
       <section className="py-20 bg-background">
-        <div className="container">
+        <div className="w-full px-4">
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
               Notre mission
@@ -95,7 +95,7 @@ const Home = () => {
 
       {/* Why Emploi+ */}
       <section className="py-20 bg-muted/30">
-        <div className="container">
+        <div className="w-full px-4">
           <div className="grid gap-12 lg:grid-cols-2 items-center">
            
            
@@ -162,7 +162,7 @@ const Home = () => {
 
       {/* Partners */}
       <section className="py-16 bg-background">
-        <div className="container">
+        <div className="w-full px-4">
           <h2 className="text-2xl font-bold text-center mb-8">Nos partenaires</h2>
           
           <div className="flex justify-center items-center gap-12 flex-wrap opacity-85 ">
@@ -186,7 +186,7 @@ const Home = () => {
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-primary">
-        <div className="container text-center space-y-6">
+        <div className="w-full px-4 text-center space-y-6">
           <h2 className="text-3xl font-bold tracking-tight text-primary-foreground md:text-4xl">
             Prêt à démarrer votre parcours professionnel ?
           </h2>

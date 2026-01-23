@@ -50,7 +50,7 @@ const Login = () => {
     <div className="flex flex-col min-h-screen">
       <AuthHeader />
       
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 py-12 px-4">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 py-12 px-4 md:hidden">
         <Card className="w-full max-w-md p-8 space-y-6">
         {/* Logo & Title */}
         <div className="text-center space-y-2">
@@ -145,7 +145,9 @@ const Login = () => {
       </Card>
       </div>
       
-      <AuthFooter />
+      <div className="hidden md:block">
+        <AuthFooter />
+      </div>
     </div>
   );
 };
