@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Briefcase, Users, Award, TrendingUp, Building2, GraduationCap, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { PWALayout } from "@/components/layout/PWALayout";
 import { useEffect } from "react";
 import HeroBanner from "@/components/HeroBanner";
 import Realizations from "@/components/Realizations";
@@ -22,6 +23,7 @@ const Home = () => {
 
   // Otherwise, show standard home page
   return (
+    <PWALayout notificationCount={0} messageCount={0}>
     <div className="flex flex-col">
       <HeroBanner />
 
@@ -205,6 +207,7 @@ const Home = () => {
         </div>
       </section>
     </div>
+    </PWALayout>
   );
 };
 

@@ -30,24 +30,18 @@ export const HeaderMobile: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
-      {/* Main Header */}
+      {/* Simplified Header for Authenticated Users */}
       <div className="px-4 py-3 flex items-center justify-between">
-        {/* Logo */}
-        <Link
-          to={user ? "/newsfeed" : "/"}
-          className="flex items-center gap-2"
-        >
+        {/* Logo - Just the icon "E+" */}
+        <Link to={user ? "/newsfeed" : "/"} className="flex items-center">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl">E+</span>
+            <span className="text-white font-bold text-xl">+</span>
           </div>
-          <span className="font-bold text-lg text-gray-900 hidden sm:inline">
-            Emploi+
-          </span>
         </Link>
 
-        {/* Right Actions */}
+        {/* Right Actions - Search and Notifications */}
         <div className="flex items-center gap-2">
-          {/* Search Button - Mobile */}
+          {/* Search Button */}
           <button
             onClick={handleSearchClick}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors
@@ -58,7 +52,7 @@ export const HeaderMobile: React.FC<HeaderProps> = ({
             <Search className="w-6 h-6 text-gray-700" />
           </button>
 
-          {/* Notifications - Only for authenticated users */}
+          {/* Notifications Bell */}
           {user && (
             <button
               onClick={() => navigate("/notifications")}
@@ -73,19 +67,6 @@ export const HeaderMobile: React.FC<HeaderProps> = ({
                   {notificationCount > 9 ? "9+" : notificationCount}
                 </Badge>
               )}
-            </button>
-          )}
-
-          {/* Menu Button - Mobile (Open Drawer) */}
-          {user && (
-            <button
-              onClick={onDrawerOpen}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors
-                focus:outline-none focus:ring-2 focus:ring-blue-500"
-              aria-label="Menu"
-              data-testid="header-menu"
-            >
-              <Menu className="w-6 h-6 text-gray-700" />
             </button>
           )}
         </div>

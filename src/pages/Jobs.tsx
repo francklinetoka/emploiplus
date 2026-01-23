@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Briefcase, ExternalLink, ChevronDown, ChevronUp, MapPin, Calendar, Building, Building2, BookOpen, User, Loader2, Search, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { PWALayout } from '@/components/layout/PWALayout';
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -430,6 +431,7 @@ const Jobs = () => {
   }
 
   return (
+    <PWALayout notificationCount={0} messageCount={0}>
     <div className="min-h-screen bg-gray-50">
       {/* Compact Search Bar */}
       <JobSearchCompact onFilterChange={setFilters} />
@@ -823,6 +825,7 @@ const Jobs = () => {
         rightIcon={<BookOpen className="h-5 w-5" />}
       />
     </div>
+    </PWALayout>
   );
 };
 

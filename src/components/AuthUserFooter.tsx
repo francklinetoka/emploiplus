@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const AuthUserFooter = () => {
   return (
-    <footer className="bg-gray-200 dark:bg-gray-700 border-t border-gray-300 dark:border-gray-600 py-4">
+    <footer className="hidden md:block bg-gray-200 dark:bg-gray-700 border-t border-gray-300 dark:border-gray-600 py-4">
       <div className="container flex items-center justify-between text-xs text-gray-600 dark:text-gray-300">
         <p>&copy; {new Date().getFullYear()} Emploi+. Tous droits réservés.</p>
         <div className="flex gap-4">

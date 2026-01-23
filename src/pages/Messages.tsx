@@ -8,6 +8,7 @@ import { ChatWindow } from '@/components/messaging/ChatWindow';
 import { ArrowLeft, Plus, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { PWALayout } from '@/components/layout/PWALayout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';

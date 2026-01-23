@@ -11,6 +11,7 @@ import {
   MoreHorizontal,
   Bell,
   Search,
+  BarChart3,
   LucideIcon
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -61,14 +62,14 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
         },
         { 
           icon: Home, 
-          label: "Fil", 
+          label: "Fil d'actualité", 
           path: "/newsfeed",
           isFab: true,
           testId: "nav-feed"
         },
         { 
           icon: MessageSquare, 
-          label: "Messages", 
+          label: "Messagerie", 
           path: "/messages",
           badge: messageCount,
           testId: "nav-messages"
@@ -84,36 +85,36 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
     : isCompany
     ? [
         { 
-          icon: Users, 
-          label: "Connexions", 
-          path: "/connexions",
-          testId: "nav-connections"
-        },
-        { 
-          icon: Users, 
-          label: "Candidats", 
-          path: "/candidats",
-          testId: "nav-candidates"
-        },
-        { 
           icon: Home, 
-          label: "Fil", 
+          label: "Fil d'actualité", 
           path: "/newsfeed",
           isFab: true,
           testId: "nav-feed"
         },
         { 
+          icon: BarChart3, 
+          label: "Recrutement", 
+          path: "/recrutement",
+          testId: "nav-recruitment"
+        },
+        { 
+          icon: Search, 
+          label: "Candidats", 
+          path: "/candidats",
+          testId: "nav-candidates"
+        },
+        { 
           icon: MessageSquare, 
-          label: "Messages", 
+          label: "Messagerie", 
           path: "/messages",
           badge: messageCount,
           testId: "nav-messages"
         },
         { 
-          icon: Briefcase, 
-          label: "Recrutement", 
-          path: "/recrutement",
-          testId: "nav-recruitment",
+          icon: User, 
+          label: "Paramètres", 
+          path: "/settings",
+          testId: "nav-settings",
           onClickOverride: onDrawerOpen,
         },
       ]

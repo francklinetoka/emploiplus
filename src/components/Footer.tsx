@@ -12,7 +12,7 @@ const setLang = (l: string) => localStorage.setItem('lang', l);
 
 const Footer = () => {
   return (
-    <footer className="border-t border-border bg-slate-900 dark:bg-slate-950">
+    <footer className="hidden md:block border-t border-border bg-slate-900 dark:bg-slate-950">
       <div className="container py-12">
         <div className="grid gap-8 md:grid-cols-3 lg:grid-cols-5">
           {/* About */}

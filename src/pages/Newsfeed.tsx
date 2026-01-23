@@ -587,6 +587,7 @@ const Newsfeed = () => {
   const isCandidate = role === 'candidate';
 
   return (
+    <PWALayout notificationCount={0} messageCount={0}>
     <div className="min-h-screen bg-muted/30">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-24 md:pb-0">
@@ -1427,6 +1428,7 @@ const Newsfeed = () => {
         rightIcon={<Briefcase className="h-5 w-5" />}
       />
     </div>
+    </PWALayout>
   );
 };
 

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { BottomNavigationBar } from "./BottomNavigationBar";
+import { BottomNavigationGuest } from "./BottomNavigationGuest";
 import { HeaderMobile } from "./HeaderMobile";
+import { HeaderMobileGuest } from "./HeaderMobileGuest";
 import { Drawer } from "./Drawer";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -12,11 +14,9 @@ interface PWALayoutProps {
 
 /**
  * PWALayout - Main layout component for PWA
- * Includes:
- * - Optimized Mobile Header (Logo + Search + Notifications)
- * - Bottom Navigation Bar with Glassmorphism
- * - Drawer Menu for secondary features
- * - Responsive layout for desktop fallback
+ * Responsive layout:
+ * - Mobile: Shows HeaderMobile/HeaderMobileGuest + BottomNavigationBar/BottomNavigationGuest
+ * - Desktop: Only shows children
  */
 export const PWALayout: React.FC<PWALayoutProps> = ({
   children,
@@ -25,36 +25,44 @@ export const PWALayout: React.FC<PWALayoutProps> = ({
 }) => {
   const { user } = useAuth();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const isAuthenticated = !!user;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <HeaderMobile
-        notificationCount={notificationCount}
-        onDrawerOpen={() => setIsDrawerOpen(true)}
-      />
+    <>
+      {/* Mobile PWA Components - Hidden on desktop */}
+      <div className="md:hidden">
+        {/* Header - Different for authenticated vs guest users */}
+        {isAuthenticated ? (
+          <HeaderMobile
+            notificationCount={notificationCount}
+            onDrawerOpen={() => setIsDrawerOpen(true)}
+          />
+        ) : (
+          <HeaderMobileGuest />
+        )}
+      </div>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
+      {/* Main Content - Add padding bottom for mobile to avoid overlap with bottom nav */}
+      <main className="md:container md:mx-auto md:px-4 md:py-6 pb-24 md:pb-0">
         {children}
       </main>
 
-      {/* Bottom Navigation Bar - Mobile Only */}
-      {user && (
-        <>
+      {/* Bottom Navigation - Mobile only */}
+      <div className="md:hidden">
+        {isAuthenticated ? (
           <BottomNavigationBar
             notificationCount={notificationCount}
             messageCount={messageCount}
-            onDrawerOpen={() => setIsDrawerOpen(true)}
           />
+        ) : (
+          <BottomNavigationGuest />
+        )}
+      </div>
 
-          {/* Drawer Menu */}
-          <Drawer
-            isOpen={isDrawerOpen}
-            onClose={() => setIsDrawerOpen(false)}
-          />
-        </>
+      {/* Drawer - Mobile only, only for authenticated users */}
+      {isAuthenticated && (
+        <Drawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
       )}
-    </div>
+    </>
   );
 };

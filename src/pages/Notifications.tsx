@@ -6,6 +6,7 @@ import { ProfileSidebar } from '@/components/layout/ProfileSidebar';
 import { authHeaders } from '@/lib/headers';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bell, Trash2, Check } from 'lucide-react';
+import { PWALayout } from '@/components/layout/PWALayout';
 
 interface Notification {
   id: number;
@@ -96,8 +97,7 @@ export default function Notifications() {
 
   const activeFilters = isCandidate ? candidateFilters : isCompany ? companyFilters : [];
 
-  return (
-    <div className="min-h-screen bg-gray-50">
+  return (    <PWALayout notificationCount={0} messageCount={0}>    <div className="min-h-screen bg-gray-50">
       <div className="container py-8 px-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Sidebar */}
@@ -258,5 +258,6 @@ export default function Notifications() {
         </div>
       </div>
     </div>
+    </PWALayout>
   );
 }

@@ -15,6 +15,7 @@ import { FormationSearchInput } from "@/components/formations/FormationSearchInp
 import { useFormationSearch } from "@/hooks/useFormationSearch";
 import { ProfileSidebar } from "@/components/layout/ProfileSidebar";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { PWALayout } from '@/components/layout/PWALayout';
 import { toast } from "sonner";
 import { Clock, Users, DollarSign, BookOpen, Calendar, AlertCircle, CheckCircle, Search, Briefcase, User, TrendingUp } from "lucide-react";
 
@@ -223,6 +224,7 @@ export default function Formations() {
 
   // --- RENDU PRINCIPAL AVEC LA RECHERCHE ---
   return (
+    <PWALayout notificationCount={0} messageCount={0}>
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-6 pb-24 md:pb-0">
         {/* Main Content with Sidebar */}
@@ -449,5 +451,6 @@ export default function Formations() {
         />
       )}
     </div>
+    </PWALayout>
   );
 }

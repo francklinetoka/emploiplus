@@ -1,6 +1,7 @@
 // src/pages/Connections.tsx
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { PWALayout } from '@/components/layout/PWALayout';
 import { Loader } from '@/components/ui/loader';
 import { NetworkStats } from '@/components/connections/NetworkStats';
 import { SuggestedProfiles } from '@/components/connections/SuggestedProfiles';
@@ -100,6 +101,7 @@ export function Connections() {
   }
 
   return (
+    <PWALayout notificationCount={0} messageCount={0}>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
      
@@ -207,6 +209,7 @@ export function Connections() {
         </div>
       </div>
     </div>
+    </PWALayout>
   );
 }
 
