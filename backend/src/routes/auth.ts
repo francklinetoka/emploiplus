@@ -170,23 +170,36 @@ router.post('/user/register', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Implement user registration logic
-    // Check if user exists
-    // Hash password
-    // Create user
-    // Generate token
-    // Return user + token
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Format email invalide' });
+    }
 
-    res.status(501).json({
-      success: false,
-      message: 'Endpoint non encore implémenté',
-    });
+    // Check if user already exists
+    const { rows: existing } = await pool.query('SELECT id, email FROM users WHERE email = $1', [email]);
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, message: 'Cet email est déjà utilisé' });
+    }
+
+    // Hash password
+    const hashed = await hashPassword(password);
+
+    // Insert user
+    const insertQuery = `
+      INSERT INTO users (full_name, email, password, user_type, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, NOW(), NOW())
+      RETURNING id, full_name, email, user_type, created_at, updated_at
+    `;
+
+    const { rows } = await pool.query(insertQuery, [full_name, email, hashed, user_type]);
+    const user = rows[0];
+
+    // Generate JWT
+    const token = jwt.sign({ id: user.id, role: user.user_type || 'candidate' }, JWT_SECRET, { expiresIn: '7d' });
+
+    res.json({ success: true, token, user });
   } catch (err) {
     console.error('User registration error:', err);
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de l\'inscription',
-    });
+    res.status(500).json({ success: false, message: 'Erreur lors de l\'inscription', error: String(err) });
   }
 });
 
@@ -201,28 +214,31 @@ router.post('/user/login', async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email et mot de passe sont requis',
-      });
+      return res.status(400).json({ success: false, message: 'Email et mot de passe sont requis' });
     }
 
-    // TODO: Implement user login logic
-    // Get user by email
-    // Verify password
-    // Generate token
-    // Return user + token
+    // Find user
+    const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = rows[0];
 
-    res.status(501).json({
-      success: false,
-      message: 'Endpoint non encore implémenté',
-    });
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Identifiants incorrects' });
+    }
+
+    const passwordMatch = await comparePassword(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ success: false, message: 'Identifiants incorrects' });
+    }
+
+    const token = jwt.sign({ id: user.id, role: user.user_type || 'candidate' }, JWT_SECRET, { expiresIn: '7d' });
+
+    // Remove password before returning
+    const { password: _pwd, ...safeUser } = user;
+
+    res.json({ success: true, token, user: safeUser });
   } catch (err) {
     console.error('User login error:', err);
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la connexion',
-    });
+    res.status(500).json({ success: false, message: 'Erreur lors de la connexion', error: String(err) });
   }
 });
 

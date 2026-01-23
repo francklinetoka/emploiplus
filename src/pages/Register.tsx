@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAuth } from "@/hooks/useAuth";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { toast } from "sonner";
 import { COUNTRIES, CONGO_CITIES } from '@/lib/options';
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
@@ -23,7 +23,7 @@ import { AuthFooter } from "@/components/auth/AuthFooter";
 
 const Register = () => {
   const navigate = useNavigate();
-  const { signUp, user } = useAuth();
+  const { signUp, user } = useSupabaseAuth();
   const [accountType, setAccountType] = useState<"candidat" | "entreprise">("candidat");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -85,26 +85,40 @@ const Register = () => {
 
     setLoading(true);
 
-    const metadata: Record<string, unknown> = {
-      user_type: "candidate",
+    const metadata = {
       full_name: `${candidatForm.firstName} ${candidatForm.lastName}`.trim(),
+      user_type: "candidate",
       country: candidatForm.country,
+      ...(candidatForm.phone && { phone: candidatForm.phone }),
+      ...(candidatForm.city && { city: candidatForm.city }),
+      ...(candidatForm.gender && { gender: candidatForm.gender }),
+      ...(candidatForm.birthdate && { birthdate: candidatForm.birthdate }),
     };
-    if (candidatForm.phone) metadata.phone = candidatForm.phone;
-    if (candidatForm.city) metadata.city = candidatForm.city;
-    if (candidatForm.gender) metadata.gender = candidatForm.gender;
-    if (candidatForm.birthdate) metadata.birthdate = candidatForm.birthdate;
 
     const { error } = await signUp(candidatForm.email, candidatForm.password, metadata);
 
     if (error) {
       toast.error(error.message);
+      setLoading(false);
     } else {
-      toast.success("Inscription réussie ! Veuillez vous connecter.");
+      toast.success("Inscription réussie ! Un email de confirmation a été envoyé.");
+      // Clear form
+      setCandidatForm({
+        firstName: "",
+        lastName: "",
+        email: "",
+        country: "",
+        city: "",
+        phone: "",
+        gender: "",
+        birthdate: "",
+        password: "",
+        confirmPassword: "",
+      });
+      setAcceptTerms(false);
+      setLoading(false);
       navigate('/connexion');
     }
-    
-    setLoading(false);
   };
 
   const handleEntrepriseSubmit = async (e: React.FormEvent) => {
@@ -123,30 +137,40 @@ const Register = () => {
     setLoading(true);
 
     const metadata = {
-      user_type: "company",
       full_name: entrepriseForm.representative || entrepriseForm.companyName,
+      user_type: "company",
       company_name: entrepriseForm.companyName,
-      company_address: entrepriseForm.address
-      ,country: 'congo'
+      company_address: entrepriseForm.address,
+      country: 'congo'
     };
 
     const { error } = await signUp(entrepriseForm.email, entrepriseForm.password, metadata);
 
     if (error) {
       toast.error(error.message);
+      setLoading(false);
     } else {
-      toast.success("Inscription réussie ! Veuillez vous connecter.");
+      toast.success("Inscription réussie ! Un email de confirmation a été envoyé.");
+      // Clear form
+      setEntrepriseForm({
+        companyName: "",
+        representative: "",
+        email: "",
+        address: "",
+        password: "",
+        confirmPassword: "",
+      });
+      setAcceptTerms(false);
+      setLoading(false);
       navigate('/connexion');
     }
-    
-    setLoading(false);
   };
 
   return (
     <div className="flex flex-col min-h-screen">
       <AuthHeader />
       
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 py-12 px-4 md:block hidden">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 py-12 px-4">
         <Card className="w-full max-w-2xl p-8 space-y-6">
         {/* Logo & Title */}
         <div className="text-center space-y-2">

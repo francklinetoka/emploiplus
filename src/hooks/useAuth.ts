@@ -13,6 +13,8 @@ export const useAuth = () => {
     // Try to boot from localStorage for instant UI
     const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
+    
+    // Always restore user from localStorage if available (for instant UI)
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
@@ -21,12 +23,13 @@ export const useAuth = () => {
       }
     }
 
+    // If no token, mark as not loading (user is guest)
     if (!token) {
       setLoading(false);
       return;
     }
 
-    // validate token and refresh user profile
+    // If token exists, validate it and refresh user profile
     fetch(`${API_BASE_URL}/api/users/me`, { headers: authHeaders() })
       .then(async (r) => {
         if (!r.ok) {

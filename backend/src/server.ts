@@ -43,6 +43,8 @@ import {
   getUnreadConversationsCount,
 } from "./services/messagingService.js";
 const app = express();
+// Mount modular auth routes if present
+import authRoutes from './routes/auth.js';
 // Load environment variables from backend/.env when running locally
 dotenv.config();
 
@@ -74,6 +76,8 @@ app.use(express.json({ limit: '10mb' }));
 // Rate limiter for API endpoints
 const apiLimiter = rateLimit({ windowMs: 60 * 1000, max: 120 });
 app.use('/api/', apiLimiter);
+// ensure /api/auth endpoints available (routes/auth.ts)
+app.use('/api/auth', authRoutes as any);
 // JWT secret must come from env in production
 const JWT_SECRET = process.env.JWT_SECRET || 'change_this_in_production';
 const userAuth = (req: Request, res: Response, next: NextFunction) => {

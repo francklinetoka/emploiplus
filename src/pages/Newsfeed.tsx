@@ -18,6 +18,7 @@ import { EditPublicationModal } from "@/components/EditPublicationModal";
 import DiscreetModeCard from "@/components/DiscreetModeCard";
 import PublicationSkeleton from "@/components/PublicationSkeleton";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { PWALayout } from "@/components/layout/PWALayout";
 import { toast } from "sonner";
 import { Loader2, Send, ThumbsUp, Share2, MessageCircle, Image as ImageIcon, X, Edit2, Trash2, FileText, BookOpen, Briefcase, User, MoreVertical, Building2, Users, TrendingUp } from "lucide-react";
 import {
@@ -98,6 +99,7 @@ const Newsfeed = () => {
   const [achievementJob, setAchievementJob] = useState("");
   const [companyStats, setCompanyStats] = useState({ jobsCount: 0, applicationsCount: 0, viewsCount: 0, verified: false, subscription: false });
   const [candidateStats, setCandidateStats] = useState({ verified: false, subscription: false, documents: 0, applicationsCount: 0, profession: "", job_title: "", profileViewsWeek: 0, profileViewsTotal: 0 });
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [formExpanded, setFormExpanded] = useState(false);
   const [profanityWarningOpen, setProfanityWarningOpen] = useState(false);
   const [blockedContent, setBlockedContent] = useState("");
@@ -120,6 +122,17 @@ const Newsfeed = () => {
   
   // États pour la navigation mobile
   const [mobileView, setMobileView] = useState<"left" | "center" | "right" | "full">("center");
+
+  useEffect(() => {
+    // Timeout loader après 5 secondes
+    if (authLoading) {
+      const timer = setTimeout(() => {
+        setLoadingTimeout(true);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+    setLoadingTimeout(false);
+  }, [authLoading]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -553,7 +566,20 @@ const Newsfeed = () => {
     setBlockedWords([]);
   };
 
-  if (authLoading || loading) {
+  if (authLoading) {
+    if (loadingTimeout) {
+      return (
+        <PWALayout notificationCount={0} messageCount={0}>
+          <div className="min-h-screen flex items-center justify-center">
+            <Card className="w-full max-w-md p-8 text-center space-y-4">
+              <h2 className="text-xl font-bold">Chargement en cours...</h2>
+              <p className="text-muted-foreground">Si cela prend trop de temps, vérifiez votre connexion internet.</p>
+              <Button onClick={() => window.location.reload()}>Réessayer</Button>
+            </Card>
+          </div>
+        </PWALayout>
+      );
+    }
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />

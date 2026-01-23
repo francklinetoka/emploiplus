@@ -1,5 +1,6 @@
 import { Express } from 'express';
 import { pool } from '../config/database.js';
+import authRoutes from './auth.js';
 
 /**
  * Centralised route registration
@@ -46,6 +47,9 @@ export const registerRoutes = (app: Express) => {
       });
     }
   });
+
+  // Mount auth routes
+  app.use('/api/auth', authRoutes);
 };
 
 /**

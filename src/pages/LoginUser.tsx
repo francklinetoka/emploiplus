@@ -7,14 +7,14 @@ import { Card } from "@/components/ui/card";
 import { Briefcase, Mail, Lock } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 import { AuthHeader } from "@/components/auth/AuthHeader";
 import { AuthFooter } from "@/components/auth/AuthFooter";
 
 const LoginUser = () => {
   const navigate = useNavigate();
-  const { user, signIn } = useAuth();
+  const { user, signIn } = useSupabaseAuth();
   const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
