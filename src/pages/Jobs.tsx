@@ -196,6 +196,7 @@ const Jobs = () => {
   // For non-authenticated users, show a different layout
   if (!user) {
     return (
+      <PWALayout notificationCount={0} messageCount={0}>
       <div className="min-h-screen bg-gray-50">
         {/* Compact Search Bar */}
         <JobSearchCompact onFilterChange={setFilters} />
@@ -211,128 +212,10 @@ const Jobs = () => {
 
             {/* CENTER & RIGHT COLUMN - JOBS LIST (Main Content) */}
             <div className="lg:col-span-9">
-              {/* Search and Filters Section */}
-              <Card className="p-4 border-0 shadow-md mb-6">
-                <div className="flex flex-col gap-3">
-                  {/* Main Filter Row - Poste visible always */}
-                  <div className="flex gap-3 items-end">
-                    <JobSearchInput
-                      value={localInput}
-                      onChange={handleInputChange}
-                      placeholder="Ex: Développeur..."
-                      minCharsWarning={showMinCharsWarning}
-                    />
-
-                    {/* Toggle Advanced Filters */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setExpandFilters(!expandFilters)}
-                      className="whitespace-nowrap h-10"
-                    >
-                      {expandFilters ? (
-                        <>
-                          <ChevronUp className="w-4 h-4 mr-1" />
-                          Moins de filtres
-                        </>
-                      ) : (
-                        <>
-                          <ChevronDown className="w-4 h-4 mr-1" />
-                          Plus de filtres
-                        </>
-                      )}
-                    </Button>
-                  </div>
-
-                  {/* Advanced Filters - Collapsible */}
-                  {expandFilters && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-gray-200">
-                      {/* Location filter */}
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1">Lieu</label>
-                        <input
-                          type="text"
-                          placeholder="Ville..."
-                          value={filters.location}
-                          onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
-                        />
-                      </div>
-
-                      {/* Company filter */}
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1">Entreprise</label>
-                        <input
-                          type="text"
-                          placeholder="Nom..."
-                          value={filters.company}
-                          onChange={(e) => setFilters({ ...filters, company: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
-                        />
-                      </div>
-
-                      {/* Contract Type filter */}
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1">Type</label>
-                        <select
-                          value={filters.type}
-                          onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
-                        >
-                          <option value="all">Tous</option>
-                          <option value="cdi">CDI</option>
-                          <option value="cdd">CDD</option>
-                          <option value="stage">Stage</option>
-                          <option value="freelance">Freelance</option>
-                          <option value="apprenticeship">Apprentissage</option>
-                        </select>
-                      </div>
-
-                      {/* Sector filter */}
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1">Secteur</label>
-                        <select
-                          value={filters.sector}
-                          onChange={(e) => setFilters({ ...filters, sector: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
-                        >
-                          <option value="">Tous</option>
-                          <option value="tech">Technologie</option>
-                          <option value="finance">Finance</option>
-                          <option value="healthcare">Santé</option>
-                          <option value="education">Éducation</option>
-                          <option value="retail">Commerce</option>
-                          <option value="manufacturing">Industrie</option>
-                          <option value="other">Autres</option>
-                        </select>
-                      </div>
-
-                      {/* Reset filters button */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="whitespace-nowrap h-10 sm:col-span-2 lg:col-span-1"
-                        onClick={() =>
-                          setFilters({
-                            search: "",
-                            location: "",
-                            country: "",
-                            company: "",
-                            sector: "",
-                            competence: "",
-                            type: "all",
-                          })
-                        }
-                      >
-                        Réinitialiser
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </Card>
+              {/* Compact Search Bar Already at Top - No additional search bar here */}
 
               {isLoading && page === 1 ? (
-                <div className="space-y-4">
+                <div className="space-y-4 pb-24 md:pb-0">
                   {[1, 2, 3, 4, 5, 6].map(i => (
                     <Skeleton key={i} className="h-24 rounded-lg" />
                   ))}
@@ -386,6 +269,7 @@ const Jobs = () => {
           </div>
         </div>
       </div>
+      </PWALayout>
     );
   }
 
@@ -753,19 +637,7 @@ const Jobs = () => {
         </div>
       </div>
 
-      {/* Navigation mobile en bas */}
-      <BottomNavigation
-        activeView={mobileView}
-        onLeftClick={() => setMobileView(mobileView === "left" ? "center" : "left")}
-        onCenterClick={() => setMobileView("center")}
-        onRightClick={() => setMobileView(mobileView === "right" ? "center" : "right")}
-        leftLabel="Profil"
-        centerLabel="Offres"
-        rightLabel="Conseils"
-        leftIcon={<User className="h-5 w-5" />}
-        centerIcon={<Briefcase className="h-5 w-5" />}
-        rightIcon={<BookOpen className="h-5 w-5" />}
-      />
+      {/* BottomNavigation moved to PWALayout - removed here */}
     </div>
     </PWALayout>
   );

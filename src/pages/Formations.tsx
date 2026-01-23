@@ -233,21 +233,7 @@ export default function Formations() {
           {!user ? (
             <div className="lg:col-span-3">
               <div className="space-y-6 sticky top-24">
-                {/* Call to action */}
-                <Card className="p-6 border-0 shadow-md bg-gradient-to-br from-blue-50 to-blue-100">
-                  <h3 className="font-bold text-lg mb-4">Accédez à plus de fonctionnalités</h3>
-                  <p className="text-sm text-gray-700 mb-4">Connectez-vous pour suivre vos formations et progresser.</p>
-                  <Button asChild className="w-full mb-2">
-                    <Link to="/connexion">
-                      Se connecter
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link to="/inscription">
-                      Créer un compte
-                    </Link>
-                  </Button>
-                </Card>
+                {/* Accédez à plus de fonctionnalités - HIDDEN for non-authenticated users */}
 
                 {/* Catégories populaires - Hidden for non-authenticated users */}
                 {/* Conseils pour bien choisir - Hidden for non-authenticated users */}
@@ -409,21 +395,7 @@ export default function Formations() {
         </div>
       </div>
 
-      {/* Navigation mobile en bas */}
-      {user && (
-        <BottomNavigation
-          activeView={mobileView}
-          onLeftClick={() => setMobileView(mobileView === "left" ? "center" : "left")}
-          onCenterClick={() => setMobileView("center")}
-          onRightClick={() => setMobileView(mobileView === "right" ? "center" : "right")}
-          leftLabel="Profil"
-          centerLabel="Formations"
-          rightLabel="Conseils"
-          leftIcon={<User className="h-5 w-5" />}
-          centerIcon={<BookOpen className="h-5 w-5" />}
-          rightIcon={<TrendingUp className="h-5 w-5" />}
-        />
-      )}
+      {/* BottomNavigation moved to PWALayout - removed here */}
     </div>
     </PWALayout>
   );

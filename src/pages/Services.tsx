@@ -29,6 +29,7 @@ import OptimizationCompanies from "@/components/services/OptimizationCompanies";
 import CareerTools from "@/components/services/CareerTools";
 import VisualCreation from "@/components/services/VisualCreation";
 import DigitalServices from "@/components/services/DigitalServices";
+import { PWALayout } from "@/components/layout/PWALayout";
 
 export default function Services() {
   const { user } = useAuth();
@@ -65,17 +66,48 @@ export default function Services() {
   ];
 
   return (
+    <PWALayout notificationCount={0} messageCount={0}>
     <div className="min-h-screen bg-white">
 
 
     
 
       <div className="bg-slate-50 py-9">
-
        
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Navigation Sidebar */}
+        <div className="w-full px-4">
+          {/* Mobile Navigation - Top Icons (4 per row) */}
+          <div className="grid grid-cols-4 gap-3 mb-8 md:hidden">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() =>
+                    setActiveTab(
+                      item.id as
+                        | "optimization"
+                        | "tools"
+                        | "visual"
+                        | "digital"
+                    )
+                  }
+                  className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? "bg-blue-50 border border-blue-200"
+                      : "bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                  }`}
+                >
+                  <Icon className={`w-6 h-6 ${isActive ? "text-blue-600" : "text-slate-600"}`} />
+                  <span className={`font-medium text-xs text-center ${isActive ? "text-blue-900" : "text-slate-700"}`}>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden md:grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Navigation Sidebar - Desktop only */}
             <div className="lg:col-span-1">
               <div className="sticky top-24 space-y-3">
                 <h3 className="text-lg font-semibold text-slate-900 px-2 mb-4">Services</h3>
@@ -137,8 +169,8 @@ export default function Services() {
             </div>
 
             {/* Content Area */}
-            <div className="lg:col-span-3">
-              <div className="space-y-8">
+            <div className="lg:col-span-3 md:px-4">
+              <div className="space-y-8 pb-24 md:pb-0">
                 {/* Header */}
                 <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
                   <h2 className="text-3xl font-bold text-slate-900 mb-2">
@@ -183,8 +215,52 @@ export default function Services() {
               </div>
             </div>
           </div>
+          {/* End desktop grid */}
+
+          {/* Mobile Content Area */}
+          <div className="md:hidden space-y-6 pb-24">
+            {/* Header */}
+            <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                {navigation.find((n) => n.id === activeTab)?.label}
+              </h2>
+              <p className="text-sm text-slate-600">
+                {navigation.find((n) => n.id === activeTab)?.description}
+              </p>
+            </div>
+
+            {/* Mobile Content Sections */}
+            {activeTab === "optimization" && (
+              <div className="animate-fadeIn">
+                {isCompany ? (
+                  <OptimizationCompanies />
+                ) : (
+                  <OptimizationCandidates />
+                )}
+              </div>
+            )}
+
+            {activeTab === "tools" && (
+              <div className="animate-fadeIn">
+                <CareerTools />
+              </div>
+            )}
+
+            {activeTab === "visual" && (
+              <div className="animate-fadeIn">
+                <VisualCreation />
+              </div>
+            )}
+
+            {activeTab === "digital" && isCompany && (
+              <div className="animate-fadeIn">
+                <DigitalServices />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
+    </PWALayout>
   );
 }
