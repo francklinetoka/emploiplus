@@ -50,8 +50,8 @@ export const PWALayout: React.FC<PWALayoutProps> = ({
         </div>
       )}
 
-      {/* Main Content - Add padding bottom for mobile to avoid overlap with bottom nav */}
-      <main className={`md:container md:mx-auto md:px-4 md:py-6 ${!hideNavigation ? 'pb-24 md:pb-0' : 'pb-0'}`}>
+      {/* Main Content - Optimized for mobile app experience */}
+      <main className={`${!hideNavigation ? 'pb-20 md:pb-0' : 'pb-0'}`}>
         {children}
       </main>
 

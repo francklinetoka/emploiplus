@@ -168,7 +168,7 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
         />
 
         {/* Navigation Items */}
-        <div className="relative flex justify-around items-end h-20 px-2">
+        <div className="relative flex justify-around items-end h-16 px-1">
           {navigationItems.map((item, index) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -181,8 +181,8 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
                   key={index}
                   data-testid={item.testId}
                   onClick={() => handleNavigationClick(item)}
-                  className="absolute bottom-4 -translate-x-1/2 left-1/2 
-                    w-14 h-14 rounded-full 
+                  className="absolute bottom-3 -translate-x-1/2 left-1/2 
+                    w-12 h-12 rounded-full 
                     bg-gradient-to-br from-blue-500 to-blue-600 
                     hover:from-blue-600 hover:to-blue-700
                     active:scale-95
@@ -191,7 +191,7 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
                     transition-all duration-200
                     focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
                 >
-                  <Icon className="w-6 h-6" />
+                  <Icon className="w-5 h-5" />
                 </button>
               );
             }
@@ -201,7 +201,7 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
                 key={index}
                 data-testid={item.testId}
                 onClick={() => handleNavigationClick(item)}
-                className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 px-2 
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 px-1 
                   transition-all duration-200 relative
                   ${
                     active
@@ -211,13 +211,13 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
               >
                 <div className="relative">
                   <Icon
-                    className={`w-6 h-6 ${
+                    className={`w-5 h-5 ${
                       active ? "fill-current" : ""
                     }`}
                   />
                   {item.badge && item.badge > 0 && (
                     <Badge
-                      className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs"
+                      className="absolute -top-2 -right-2 h-4 w-4 flex items-center justify-center p-0 bg-red-500 text-white text-xs"
                     >
                       {item.badge > 9 ? "9+" : item.badge}
                     </Badge>
@@ -229,7 +229,7 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
                 
                 {/* Indicateur actif */}
                 {active && (
-                  <div className="absolute bottom-0 h-0.5 w-8 bg-blue-600 rounded-full" />
+                  <div className="absolute bottom-0 h-0.5 w-6 bg-blue-600 rounded-full" />
                 )}
               </button>
             );
@@ -238,7 +238,7 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
       </nav>
 
       {/* Spacer pour éviter que le contenu soit caché */}
-      {user && <div className="h-24 md:h-0" />}
+      {user && <div className="h-20 md:h-0" />}
     </>
   );
 };

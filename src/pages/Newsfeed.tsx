@@ -615,13 +615,13 @@ const Newsfeed = () => {
   return (
     <PWALayout notificationCount={0} messageCount={0}>
     <div className="min-h-screen bg-muted/30">
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-24 md:pb-0">
+      <div className="w-full px-0 md:container md:mx-auto md:px-4 py-4 md:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-6 pb-0">
           
-          {/* COLONNE GAUCHE - PROFIL - Visible sur desktop et mobile (via modal bottom nav) */}
+          {/* COLONNE GAUCHE - PROFIL - Hidden on mobile, visible on desktop */}
           <div className={`${
             mobileView === "center" || mobileView === "right" ? "hidden" : ""
-          } lg:col-span-3 lg:block`}>
+          } hidden lg:block lg:col-span-3`}>
             <Card className="p-6 border-0 shadow-md sticky top-24">
               {/* Photo et infos de base */}
               <div className="text-center mb-6">
@@ -792,16 +792,16 @@ const Newsfeed = () => {
           {/* COLONNE CENTRALE - FLUX */}
           <div className={`${
             mobileView === "left" || mobileView === "right" ? "hidden" : ""
-          } lg:col-span-6 lg:block`}>
+          } lg:col-span-6 lg:block col-span-1`}>
             <div 
               ref={feedContainerRef}
-              className="space-y-6 max-h-[calc(100vh-120px)] overflow-y-auto pr-4"
+              className="space-y-4 md:space-y-6"
             >
-              <h1 className="text-4xl font-bold">Fil d'actualité</h1>
+              <h1 className="text-3xl md:text-4xl font-bold px-4 md:px-0">Fil d'actualité</h1>
 
               {/* Create Post Card - Style LinkedIn - Compact */}
               {canCreatePost && (
-                <Card className="p-4 border-0 shadow-md">
+                <Card className="p-3 md:p-4 border-0 shadow-md mx-4 md:mx-0 rounded-xl md:rounded-lg">
                   <form onSubmit={handleCreatePost} className="space-y-4">
                     {!formExpanded ? (
                       // Compact form
@@ -951,7 +951,7 @@ const Newsfeed = () => {
                 ) : (
                   <>
                     {publications.map((publication) => (
-                    <Card key={publication.id} className="p-6 border-0 shadow-md">
+                    <Card key={publication.id} className="p-4 md:p-6 border-0 shadow-md mx-4 md:mx-0 rounded-xl md:rounded-lg">
                       {/* Header with user info */}
                       <div className="flex items-start justify-between mb-4">
                         <div 
@@ -1156,13 +1156,13 @@ const Newsfeed = () => {
             </div>
           </div>
 
-          {/* COLONNE DROITE - SUGGESTIONS & TENDANCES */}
+          {/* COLONNE DROITE - SUGGESTIONS & TENDANCES - Hidden on mobile */}
           <div className={`${
             mobileView === "left" || mobileView === "center" ? "hidden" : ""
-          } lg:col-span-3 lg:block`}>
+          } hidden lg:block lg:col-span-3`}>
             <div className="space-y-6 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto pr-2">
               {/* Bouton Mes Publications - Disponible pour tous */}
-              <Button asChild className="w-full" size="lg">
+              <Button asChild className="w-full" size="sm">
                 <Link to="/mes-publications" className="gap-2">
                   📝 Mes Publications
                 </Link>
@@ -1170,7 +1170,7 @@ const Newsfeed = () => {
 
               {/* Bouton Créer mon CV - Disponible pour les candidats */}
               {isCandidate && (
-                <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800" size="lg">
+                <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800" size="sm">
                   <Link to="/cv-generator" className="gap-2">
                     📄 Créer mon CV
                   </Link>

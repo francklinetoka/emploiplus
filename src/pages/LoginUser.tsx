@@ -39,7 +39,7 @@ const LoginUser = () => {
         navigate(redirect);
       } else {
         // Redirect all users to newsfeed
-        navigate('/');
+        navigate('/fil-actualite');
       }
     }
   }, [user, navigate, location.search]);
@@ -173,7 +173,7 @@ const LoginUser = () => {
                 navigate(redirect);
               } else {
                 // Redirect all users to newsfeed
-                navigate('/');
+                navigate('/fil-actualite');
               }
             }}
             onError={(error) => {

@@ -150,17 +150,6 @@ export const useSupabaseAuth = () => {
         return { error: signInError, user: null };
       }
 
-      // Check if email is confirmed
-      if (data.user && !data.user.email_confirmed_at) {
-        const emailNotConfirmedError = {
-          message: 'Veuillez confirmer votre adresse email avant de vous connecter. Vérifiez votre boîte mail (et spam) pour le lien de confirmation.',
-        };
-        setError(emailNotConfirmedError.message);
-        // Sign out the user since email is not confirmed
-        await supabase.auth.signOut();
-        return { error: emailNotConfirmedError, user: null };
-      }
-
       // Fetch user profile after sign in
       if (data.user) {
         const profile = await fetchUserProfile(data.user.id);

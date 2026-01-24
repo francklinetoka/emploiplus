@@ -54,7 +54,7 @@ export const AuthCallback = () => {
 
           // 3. Redirection finale - va vers le newsfeed
           toast.success('Connexion réussie !');
-          navigate('/', { replace: true });
+          navigate('/fil-actualite', { replace: true });
 
         } else {
           // Si après quelques secondes on n'a toujours pas de session

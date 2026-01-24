@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Briefcase, Users, Award, TrendingUp, Building2, GraduationCap, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { PWALayout } from "@/components/layout/PWALayout";
 import { useEffect } from "react";
 import HeroBanner from "@/components/HeroBanner";
@@ -12,14 +13,15 @@ import DashboardNewsfeed from "@/components/DashboardNewsfeed";
 
 const Home = () => {
   const { user } = useAuth();
+  const { user: supabaseUser } = useSupabaseAuth();
   const navigate = useNavigate();
 
-  // If user is logged in, redirect to newsfeed
+  // If user is logged in (either via backend or Supabase), redirect to newsfeed
   useEffect(() => {
-    if (user) {
+    if (user || supabaseUser) {
       navigate('/fil-actualite', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, supabaseUser, navigate]);
 
   // Otherwise, show standard home page
   return (
