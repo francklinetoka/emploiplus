@@ -30,12 +30,7 @@ export default function VisualCreation({ isLoggedIn = false }: VisualCreationPro
     <section id="creation-visuelle" className={`py-16 ${isLoggedIn ? 'bg-gradient-to-br from-primary/5 via-white to-secondary/5' : 'bg-white'}`}>
       <div className="container">
         <div className="text-center mb-12">
-          <div className="inline-block mb-4">
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold">
-              <Star className="h-4 w-4" />
-              Outils de création
-            </span>
-          </div>
+        
           <h2 className="text-4xl font-bold mb-4">
             {isLoggedIn ? "Créez vos supports visuels" : "Création visuelle"}
           </h2>

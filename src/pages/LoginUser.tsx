@@ -9,8 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
-import { AuthHeader } from "@/components/auth/AuthHeader";
-import { AuthFooter } from "@/components/auth/AuthFooter";
+import { PWALayout } from "@/components/layout/PWALayout";
 
 const LoginUser = () => {
   const navigate = useNavigate();
@@ -62,9 +61,8 @@ const LoginUser = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <AuthHeader />
-      
+    <PWALayout notificationCount={0} messageCount={0} hideNavigation>
+      <div className="flex flex-col min-h-screen">
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 py-12 px-4">
         <Card className="w-full max-w-md p-8 space-y-6">
         {/* Logo & Title */}
@@ -168,9 +166,8 @@ const LoginUser = () => {
        
       </Card>
       </div>
-      
-      <AuthFooter />
-    </div>
+      </div>
+    </PWALayout>
   );
 };
 

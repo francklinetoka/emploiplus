@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search, MapPin, Briefcase, Building, Globe, Zap, X, ChevronUp } from "lucide-react";
+import { useScrollDirection } from "@/hooks/useScrollDirection";
 
 interface Job {
   id: string;
@@ -43,9 +44,8 @@ export default function JobSearchCompact({ onFilterChange }: JobSearchCompactPro
   const [competence, setCompetence] = useState("");
   const [type, setType] = useState("all");
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const [scrollDirection, setScrollDirection] = useState<"up" | "down">("up");
-  const [lastScrollY, setLastScrollY] = useState(0);
+
+  const { isVisible } = useScrollDirection(80);
 
   const { data: jobsResponse = { data: [], pagination: { total: 0 } } } = useQuery({
     queryKey: ["jobs"],
@@ -55,33 +55,6 @@ export default function JobSearchCompact({ onFilterChange }: JobSearchCompactPro
 
   // Extraire le tableau des offres (compatible avec ancien et nouveau format)
   const jobs = Array.isArray(jobsResponse) ? jobsResponse : (jobsResponse?.data || []);
-
-  // Scroll handling for sticky hide/show
-  useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY;
-          if (currentScrollY > lastScrollY && currentScrollY > 100) {
-            // Scrolling down
-            setScrollDirection("down");
-            setIsVisible(false);
-          } else if (currentScrollY < lastScrollY) {
-            // Scrolling up
-            setScrollDirection("up");
-            setIsVisible(true);
-          }
-          setLastScrollY(currentScrollY);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
 
   // Extracted values from jobs
   const locations = useMemo(() => {

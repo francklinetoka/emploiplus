@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useScrollDirection } from "@/hooks/useScrollDirection";
 import { 
   MessageSquare, 
   Home, 
@@ -149,10 +150,14 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
     }
   };
 
+  const { isVisible } = useScrollDirection(100);
+
   return (
     <>
       {/* Navigation Bar - Mobile Only */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+      <nav className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${
+        isVisible ? "translate-y-0" : "translate-y-full"
+      }`}>
         {/* Glassmorphism Background */}
         <div
           className="absolute inset-0 bg-white/80 backdrop-blur-xl border-t border-white/30"

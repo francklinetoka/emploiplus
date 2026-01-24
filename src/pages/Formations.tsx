@@ -9,15 +9,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
-import FormationSearch from "@/components/formations/FormationSearch";
+import FormationSearchCompact from "@/components/formations/FormationSearchCompact";
 import { FormationListItem } from "@/components/formations/FormationListItem";
-import { FormationSearchInput } from "@/components/formations/FormationSearchInput";
-import { useFormationSearch } from "@/hooks/useFormationSearch";
 import { ProfileSidebar } from "@/components/layout/ProfileSidebar";
-import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { PWALayout } from '@/components/layout/PWALayout';
 import { toast } from "sonner";
-import { Clock, Users, DollarSign, BookOpen, Calendar, AlertCircle, CheckCircle, Search, Briefcase, User, TrendingUp } from "lucide-react";
+import { Clock, Users, DollarSign, BookOpen, Calendar, AlertCircle, CheckCircle, Briefcase, User, TrendingUp } from "lucide-react";
 
 interface Formation {
   id: number;
@@ -54,11 +51,11 @@ export default function Formations() {
   const [expandedFormationId, setExpandedFormationId] = useState<number | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
   const [mobileView, setMobileView] = useState<"left" | "center" | "right">("center");
-
-  // Use optimized search hook for debouncing
-  const { localInput, debouncedSearch, handleInputChange, showMinCharsWarning } = useFormationSearch({
-    debounceMs: 500,
-    minChars: 3,
+  const [filters, setFilters] = useState({
+    search: "",
+    category: "",
+    level: "",
+    priceRange: "",
   });
 
   useEffect(() => {
@@ -73,7 +70,7 @@ export default function Formations() {
     setAllFormations([]);
     setPage(1);
     setHasMore(true);
-  }, []);
+  }, [filters]);
 
   // Fetch formations with pagination
   const { data: formationsData = { formations: [], total: 0 }, isLoading } = useQuery({
@@ -201,101 +198,25 @@ export default function Formations() {
     );
   }
 
-  const JobCard = ({ job }: { job: Job }) => (
-    <div className="p-3 border-b last:border-b-0 hover:bg-gray-50 transition-colors">
-      <h4 className="font-semibold text-sm text-gray-900 line-clamp-1 mb-1">
-        {job.title}
-      </h4>
-      <p className="text-xs text-gray-600 mb-2">{job.company}</p>
-      <div className="space-y-1 text-xs text-gray-500 mb-3">
-        <p>📍 {job.location}</p>
-        {job.salary && <p>💰 {job.salary}</p>}
-        {job.type && <Badge variant="outline" className="text-xs mt-1">{job.type}</Badge>}
-      </div>
-      <Button
-        size="sm"
-        variant="outline"
-        className="w-full text-xs h-8"
-      >
-        Postuler
-      </Button>
-    </div>
-  );
-
   // --- RENDU PRINCIPAL AVEC LA RECHERCHE ---
   return (
-    <PWALayout notificationCount={0} messageCount={0}>
-    <div className="min-h-screen bg-gray-50">
+    <PWALayout notificationCount={0} messageCount={0} hideHeader>
+    <div className="min-h-screen bg-gray-50 pb-24 md:pb-0">
+      {/* Formation Search Bar - Sticky on mobile, replaces header */}
+      <FormationSearchCompact onFilterChange={setFilters} />
+
       <div className="container mx-auto px-4 py-6 pb-24 md:pb-0">
         {/* Main Content with Sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* LEFT COLUMN - SIDEBAR (only visible for non-authenticated users) */}
-          {!user ? (
-            <div className="lg:col-span-3">
-              <div className="space-y-6 sticky top-24">
-                {/* Accédez à plus de fonctionnalités - HIDDEN for non-authenticated users */}
-
-                {/* Catégories populaires - Hidden for non-authenticated users */}
-                {/* Conseils pour bien choisir - Hidden for non-authenticated users */}
-              </div>
-            </div>
-          ) : (
+          {/* LEFT COLUMN - SIDEBAR (only visible for authenticated users) */}
+          {user && (
             <div className="lg:col-span-3">
               <ProfileSidebar />
             </div>
           )}
 
           {/* Center Content - Formations */}
-          <div className={`${
-            mobileView === "left" || mobileView === "right" ? "hidden" : ""
-          } ${user ? "lg:col-span-6" : "lg:col-span-9"} lg:block`}>
-            {/* Search Bar - Fixed/Sticky on top */}
-            <Card className="p-6 border-0 shadow-md mb-6 sticky top-24 md:relative bg-white md:bg-gray-50 md:shadow-none md:border-0 z-10">
-              <h3 className="font-bold text-lg mb-4 flex items-center gap-2 md:block">
-                <Search className="h-5 w-5 text-primary md:hidden" />
-                <span className="hidden md:inline">Rechercher une formation</span>
-              </h3>
-              <div className="space-y-3">
-                {/* Main search bar with debouncing */}
-                <FormationSearchInput
-                  value={localInput}
-                  onChange={handleInputChange}
-                  placeholder="Titre, catégorie, mots-clés..."
-                  minCharsWarning={showMinCharsWarning}
-                />
-
-                {/* Filters Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {/* Category filter */}
-                  <select className="text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
-                    <option value="">📚 Catégories</option>
-                    <option value="tech">Technologie</option>
-                    <option value="business">Business</option>
-                    <option value="design">Design</option>
-                    <option value="marketing">Marketing</option>
-                    <option value="langues">Langues</option>
-                  </select>
-
-                  {/* Level filter */}
-                  <select className="text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
-                    <option value="all">📊 Niveau</option>
-                    <option value="beginner">Débutant</option>
-                    <option value="intermediate">Intermédiaire</option>
-                    <option value="advanced">Avancé</option>
-                  </select>
-
-                  {/* Sort filter */}
-                  <select className="text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
-                    <option value="recent">⏱️ Tri</option>
-                    <option value="recent">Plus récentes</option>
-                    <option value="popular">Plus populaires</option>
-                    <option value="price-asc">Prix (croissant)</option>
-                    <option value="price-desc">Prix (décroissant)</option>
-                  </select>
-                </div>
-              </div>
-            </Card>
-
+          <div className={`${user ? "lg:col-span-6" : "lg:col-span-9"} lg:block`}>
             {allFormations.length > 0 ? (
               <>
                 <div className="space-y-4">

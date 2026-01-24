@@ -10,6 +10,8 @@ interface PWALayoutProps {
   children: React.ReactNode;
   notificationCount?: number;
   messageCount?: number;
+  hideNavigation?: boolean; // Hide header and bottom nav on mobile (for auth pages)
+  hideHeader?: boolean; // Hide only header on mobile (for pages with search bar)
 }
 
 /**
@@ -17,11 +19,15 @@ interface PWALayoutProps {
  * Responsive layout:
  * - Mobile: Shows HeaderMobile/HeaderMobileGuest + BottomNavigationBar/BottomNavigationGuest
  * - Desktop: Only shows children
+ * - hideNavigation: Set to true for auth pages (Login/Register) to show clean mobile UI
+ * - hideHeader: Set to true for pages with search bars that replace the header
  */
 export const PWALayout: React.FC<PWALayoutProps> = ({
   children,
   notificationCount = 0,
   messageCount = 0,
+  hideNavigation = false,
+  hideHeader = false,
 }) => {
   const { user } = useAuth();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -30,34 +36,38 @@ export const PWALayout: React.FC<PWALayoutProps> = ({
   return (
     <>
       {/* Mobile PWA Components - Hidden on desktop */}
-      <div className="md:hidden">
-        {/* Header - Different for authenticated vs guest users */}
-        {isAuthenticated ? (
-          <HeaderMobile
-            notificationCount={notificationCount}
-            onDrawerOpen={() => setIsDrawerOpen(true)}
-          />
-        ) : (
-          <HeaderMobileGuest />
-        )}
-      </div>
+      {!hideNavigation && !hideHeader && (
+        <div className="md:hidden">
+          {/* Header - Different for authenticated vs guest users */}
+          {isAuthenticated ? (
+            <HeaderMobile
+              notificationCount={notificationCount}
+              onDrawerOpen={() => setIsDrawerOpen(true)}
+            />
+          ) : (
+            <HeaderMobileGuest />
+          )}
+        </div>
+      )}
 
       {/* Main Content - Add padding bottom for mobile to avoid overlap with bottom nav */}
-      <main className="md:container md:mx-auto md:px-4 md:py-6 pb-24 md:pb-0">
+      <main className={`md:container md:mx-auto md:px-4 md:py-6 ${!hideNavigation ? 'pb-24 md:pb-0' : 'pb-0'}`}>
         {children}
       </main>
 
       {/* Bottom Navigation - Mobile only */}
-      <div className="md:hidden">
-        {isAuthenticated ? (
-          <BottomNavigationBar
-            notificationCount={notificationCount}
-            messageCount={messageCount}
-          />
-        ) : (
-          <BottomNavigationGuest />
-        )}
-      </div>
+      {!hideNavigation && (
+        <div className="md:hidden">
+          {isAuthenticated ? (
+            <BottomNavigationBar
+              notificationCount={notificationCount}
+              messageCount={messageCount}
+            />
+          ) : (
+            <BottomNavigationGuest />
+          )}
+        </div>
+      )}
 
       {/* Drawer - Mobile only, only for authenticated users */}
       {isAuthenticated && (

@@ -27,10 +27,7 @@ export default function CareerTools() {
     <section id="outils-carriere" className="py-8">
       <div className="space-y-6">
         <div className="space-y-2">
-          <div className="flex items-center gap-2 mb-4">
-            <Zap className="h-5 w-5 text-primary" />
-            <span className="text-sm font-semibold text-primary uppercase tracking-wide">Outils carrière</span>
-          </div>
+          
           <h2 className="text-3xl font-bold">Préparez-vous aux entretiens</h2>
           <p className="text-muted-foreground text-lg">Entraînez-vous et évaluez vos compétences avec nos outils interactifs</p>
         </div>

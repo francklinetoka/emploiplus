@@ -52,10 +52,7 @@ export default function DigitalServices() {
     <section id="services-digitaux" className="py-8">
       <div className="space-y-6">
         <div className="space-y-2">
-          <div className="flex items-center gap-2 mb-4">
-            <Mail className="h-5 w-5 text-primary" />
-            <span className="text-sm font-semibold text-primary uppercase tracking-wide">Services numériques</span>
-          </div>
+        
           <h2 className="text-3xl font-bold">Nos solutions digitales</h2>
           <p className="text-muted-foreground text-lg">Accéléruz votre transformation numérique avec nos services spécialisés</p>
         </div>

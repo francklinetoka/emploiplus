@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowRight, FileText, Mail, Users, Sparkles } from "lucide-react";
+import { ArrowRight, FileText, Mail, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function OptimizationCandidates() {
@@ -46,10 +46,7 @@ export default function OptimizationCandidates() {
     <section id="optimisation-candidature" className="py-8">
       <div className="space-y-6">
         <div className="space-y-2">
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <span className="text-sm font-semibold text-primary uppercase tracking-wide">Optimisation candidature</span>
-          </div>
+         
           <h2 className="text-3xl font-bold">Démarquez-vous auprès des recruteurs</h2>
           <p className="text-muted-foreground text-lg">Créez des documents professionnels et impactants pour maximiser vos chances</p>
         </div>

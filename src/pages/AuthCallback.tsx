@@ -54,7 +54,7 @@ export const AuthCallback = () => {
 
           // 3. Redirection finale
           toast.success('Connexion réussie !');
-          navigate('/', { replace: true });
+          navigate('/dashboard', { replace: true });
 
         } else {
           // Si après quelques secondes on n'a toujours pas de session

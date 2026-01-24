@@ -18,8 +18,7 @@ import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { toast } from "sonner";
 import { COUNTRIES, CONGO_CITIES } from '@/lib/options';
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
-import { AuthHeader } from "@/components/auth/AuthHeader";
-import { AuthFooter } from "@/components/auth/AuthFooter";
+import { PWALayout } from "@/components/layout/PWALayout";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -167,8 +166,8 @@ const Register = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <AuthHeader />
+    <PWALayout notificationCount={0} messageCount={0} hideNavigation>
+      <div className="flex flex-col min-h-screen">
       
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 py-12 px-4">
         <Card className="w-full max-w-2xl p-8 space-y-6">
@@ -565,11 +564,8 @@ const Register = () => {
    
       </Card>
       </div>
-      
-      <div className="hidden md:block">
-        <AuthFooter />
       </div>
-    </div>
+    </PWALayout>
   );
 };
 
