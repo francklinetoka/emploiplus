@@ -42,6 +42,8 @@ import {
   hasConversation,
   getUnreadConversationsCount,
 } from "./services/messagingService.js";
+import webhookMicroservices from "./routes/webhook-microservices.js";
+import { jobAnalysisQueue, postModerationQueue, activityScoringQueue, initializeQueues } from "./services/microserviceQueues.js";
 const app = express();
 // Mount modular auth routes if present
 import authRoutes from './routes/auth.js';
@@ -78,6 +80,9 @@ const apiLimiter = rateLimit({ windowMs: 60 * 1000, max: 120 });
 app.use('/api/', apiLimiter);
 // ensure /api/auth endpoints available (routes/auth.ts)
 app.use('/api/auth', authRoutes as any);
+
+// Mount webhook microservices routes
+app.use('/api', webhookMicroservices as any);
 // JWT secret must come from env in production
 const JWT_SECRET = process.env.JWT_SECRET || 'change_this_in_production';
 const userAuth = (req: Request, res: Response, next: NextFunction) => {
@@ -147,6 +152,39 @@ else {
     published_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT NOW()
   )`).catch((err) => console.error("Could not ensure jobs table exists:", err));
+    
+    // Ensure the `job_matches` table exists
+    pool.query(`CREATE TABLE IF NOT EXISTS job_matches (
+      id SERIAL PRIMARY KEY,
+      job_id INTEGER REFERENCES jobs(id) ON DELETE CASCADE,
+      candidate_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      match_score INTEGER CHECK (match_score >= 0 AND match_score <= 100),
+      matched_skills TEXT,
+      missing_skills TEXT,
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(job_id, candidate_id)
+    )`).catch((err) => console.error("Could not ensure job_matches table exists:", err));
+    
+    // Ensure the `activity_logs` table exists
+    pool.query(`CREATE TABLE IF NOT EXISTS activity_logs (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      action VARCHAR(50),
+      target_type VARCHAR(50),
+      target_id INTEGER,
+      points_earned INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT NOW(),
+      INDEX idx_activity_user_created (user_id, created_at)
+    )`).catch((err) => console.error("Could not ensure activity_logs table exists:", err));
+    
+    // Add columns to posts if not exists
+    pool.query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS is_flagged BOOLEAN DEFAULT false`).catch(() => {});
+    pool.query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS flag_reason TEXT`).catch(() => {});
+    pool.query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS moderated_at TIMESTAMP`).catch(() => {});
+    
+    // Add columns to users if not exists
+    pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS engagement_score INTEGER DEFAULT 0`).catch(() => {});
+    pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_activity_at TIMESTAMP`).catch(() => {});
     // Ensure the `saved_jobs` table exists
     pool.query(`CREATE TABLE IF NOT EXISTS saved_jobs (
     id SERIAL PRIMARY KEY,
@@ -4471,7 +4509,7 @@ app.delete('/api/follows/:followingId', userAuth, async (req, res) => {
 });
 
 // Get network stats (followers/following counts)
-app.get('/api/follows/stats', userAuth, async (req, res) => {
+app.get('/api/follows/stats', userAuth, async (req: Request, res: Response) => {
     try {
         const userId = req.userId;
         const stats = await getFollowers(userId);
@@ -4483,7 +4521,7 @@ app.get('/api/follows/stats', userAuth, async (req, res) => {
 });
 
 // Get suggestions for follow
-app.get('/api/follows/suggestions', userAuth, async (req, res) => {
+app.get('/api/follows/suggestions', userAuth, async (req: Request, res: Response) => {
     try {
         const userId = req.userId;
         const limit = parseInt(req.query.limit as string) || 10;
@@ -4497,7 +4535,7 @@ app.get('/api/follows/suggestions', userAuth, async (req, res) => {
 });
 
 // Get network activity (what your follows are doing)
-app.get('/api/follows/activity', userAuth, async (req, res) => {
+app.get('/api/follows/activity', userAuth, async (req: Request, res: Response) => {
     try {
         const userId = req.userId;
         const limit = parseInt(req.query.limit as string) || 20;
@@ -4511,7 +4549,7 @@ app.get('/api/follows/activity', userAuth, async (req, res) => {
 });
 
 // Get following list
-app.get('/api/follows/following', userAuth, async (req, res) => {
+app.get('/api/follows/following', userAuth, async (req: Request, res: Response) => {
     try {
         const userId = req.userId;
         const users = await getFollowingUsers(userId);
@@ -4523,7 +4561,7 @@ app.get('/api/follows/following', userAuth, async (req, res) => {
 });
 
 // Get followers list
-app.get('/api/follows/followers', userAuth, async (req, res) => {
+app.get('/api/follows/followers', userAuth, async (req: Request, res: Response) => {
     try {
         const userId = req.userId;
         const users = await getFollowerUsers(userId);
@@ -4535,7 +4573,7 @@ app.get('/api/follows/followers', userAuth, async (req, res) => {
 });
 
 // Check if following
-app.get('/api/follows/:userId/is-following', userAuth, async (req, res) => {
+app.get('/api/follows/:userId/is-following', userAuth, async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
         const currentUserId = req.userId;
@@ -4549,7 +4587,7 @@ app.get('/api/follows/:userId/is-following', userAuth, async (req, res) => {
 });
 
 // Block a user
-app.post('/api/blocks/:blockedUserId', userAuth, async (req, res) => {
+app.post('/api/blocks/:blockedUserId', userAuth, async (req: Request, res: Response) => {
     try {
         const { blockedUserId } = req.params;
         const userId = req.userId;
@@ -4567,7 +4605,7 @@ app.post('/api/blocks/:blockedUserId', userAuth, async (req, res) => {
 });
 
 // Unblock a user
-app.delete('/api/blocks/:blockedUserId', userAuth, async (req, res) => {
+app.delete('/api/blocks/:blockedUserId', userAuth, async (req: Request, res: Response) => {
     try {
         const { blockedUserId } = req.params;
         const userId = req.userId;
@@ -4801,6 +4839,52 @@ app.get('/api/conversations/check/:recipientId', userAuth, async (req, res) => {
     } catch (error) {
         console.error('Check conversation error:', error);
         res.status(500).json({ success: false, message: 'Erreur lors de la vérification' });
+    }
+});
+
+// Health check for microservice queues
+app.get('/api/health/queues', async (req, res) => {
+    try {
+        const jobAnalysisCount = await jobAnalysisQueue.count();
+        const postModerationCount = await postModerationQueue.count();
+        const activityScoringCount = await activityScoringQueue.count();
+        
+        const jobAnalysisCompleted = await jobAnalysisQueue.getCompletedCount();
+        const postModerationCompleted = await postModerationQueue.getCompletedCount();
+        const activityScoringCompleted = await activityScoringQueue.getCompletedCount();
+        
+        res.json({
+            status: 'healthy',
+            queues: {
+                jobAnalysis: { pending: jobAnalysisCount, completed: jobAnalysisCompleted },
+                postModeration: { pending: postModerationCount, completed: postModerationCompleted },
+                activityScoring: { pending: activityScoringCount, completed: activityScoringCompleted }
+            },
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Health check error:', error);
+        res.status(500).json({ status: 'unhealthy', error: String(error) });
+    }
+});
+
+// Initialize queues and start workers on server startup
+initializeQueues().catch((err) => {
+    console.error('Failed to initialize microservice queues:', err);
+    process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+    console.log('SIGTERM received, shutting down gracefully...');
+    try {
+        await jobAnalysisQueue.close();
+        await postModerationQueue.close();
+        await activityScoringQueue.close();
+        process.exit(0);
+    } catch (err) {
+        console.error('Error during shutdown:', err);
+        process.exit(1);
     }
 });
 

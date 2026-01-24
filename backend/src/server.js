@@ -9,6 +9,15 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import fs from 'fs';
 import path from 'path';
+// backend/src/server.ts
+
+import authRoutes from './routes/auth.js'; // Vérifie le chemin vers ton fichier auth.ts
+
+// ... après tes middlewares cors et express.json()
+app.use('/api/auth', authRoutes);
+
+
+
 const app = express();
 // Load environment variables from backend/.env when running locally
 dotenv.config();

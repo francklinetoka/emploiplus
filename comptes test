@@ -43,35 +43,14 @@ postgresql://postgres.gcwqiplhiwbicnisnaay:G9yGu6bLRYBQtUQK@aws-1-eu-central-1.p
 
 
 
- 
+ "Je souhaite reconstruire la base du Backend de mon projet EmploiPlus en commençant uniquement par l'authentification, pour m'assurer qu'elle est 100% fonctionnelle avant d'ajouter d'autres fonctionnalités.
 
-Modificationions de la base de données : Migration des IDs entiers vers UUID dans Supabase.   
+Fichier server.ts : Génère une structure minimale et propre avec Express, CORS et l'initialisation du client @supabase/supabase-js. Ne pas inclure Redis, BullMQ ou de logique de Webhooks pour le moment.
 
+Middleware src/middleware/auth.ts : Crée un middleware authenticateUser qui récupère le jeton JWT dans le header Authorization, le valide via supabase.auth.getUser(token), et attache l'utilisateur à req.user.
 
- Context: Database migration from Integer IDs to UUIDs in Supabase.
+Types TypeScript : Assure-toi que les types sont correctement définis pour éviter les erreurs de compilation (notamment pour étendre l'objet Request d'Express avec user).
 
-Database Changes:
+Route de test : Crée une route /api/auth/me sécurisée par ce middleware qui renvoie un message de succès et les données de l'utilisateur.
 
-All id primary keys in tables users, publications, jobs, notifications, comments, and likes are now of type uuid.
-
-All foreign keys now use uuid and point to auth.users(id).
-
-In publications table: renamed user_id to author_id.
-
-In jobs table: renamed user_id to company_id.
-
-In job_applications table: renamed user_id to applicant_id.
-
-Your Task:
-
-Update all Supabase queries (select, insert, update, delete) to use uuid strings instead of integers.
-
-Ensure author_id, company_id, and applicant_id are used instead of user_id where applicable.
-
-Remove all parseInt(), Number(), or + unary operators used on IDs.
-
-Update TypeScript interfaces/types so that id and foreign key fields are string instead of number.
-
-Ensure auth.uid() or the ID from supabase.auth.getUser() is passed to all insert operations.
-
-Files to scan: All API services, Supabase hooks, and form components
+Les variables d'environnement à utiliser sont exclusivement : DATABASE_URL, SUPABASE_URL, SUPABASE_ANON_KEY, et CORS_ORIGINS."
