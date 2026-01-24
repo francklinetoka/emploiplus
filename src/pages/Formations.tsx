@@ -74,7 +74,7 @@ export default function Formations() {
 
   // Fetch formations with pagination
   const { data: formationsData = { formations: [], total: 0 }, isLoading } = useQuery({
-    queryKey: ["formations", page],
+    queryKey: ["formations", page, filters],
     queryFn: async () => {
       const response = await api.getFormations({
         limit: 10,
@@ -86,6 +86,7 @@ export default function Formations() {
       }
       return response || { formations: [], total: 0 };
     },
+    enabled: true, // Always load formations
     staleTime: 1000 * 60 * 5,
   });
 

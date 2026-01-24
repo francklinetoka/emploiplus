@@ -24,7 +24,8 @@ const Home = () => {
   // Otherwise, show standard home page
   return (
     <PWALayout notificationCount={0} messageCount={0}>
-      <div className="flex flex-col pt-16">
+
+      <div className="flex flex-col ">
         <HeroBanner />
 
       {/* Mission & Values */}

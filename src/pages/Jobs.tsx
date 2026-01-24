@@ -53,9 +53,8 @@ const Jobs = () => {
   const [expandFilters, setExpandFilters] = useState(false);
   const loaderRef = useRef<HTMLDivElement>(null);
   const [mobileView, setMobileView] = useState<"left" | "center" | "right">("center");
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize and fetch initial jobs on component mount
+  // Extract search query from URL parameters on mount
   useEffect(() => {
     try {
       const params = new URLSearchParams(location.search);
@@ -63,13 +62,10 @@ const Jobs = () => {
       if (q) {
         setFilters((s) => ({ ...s, search: q }));
       }
-      // Mark as initialized to trigger the fetch
-      setIsInitialized(true);
     } catch (e) {
       console.error('Error parsing location search:', e);
-      setIsInitialized(true);
     }
-  }, []);
+  }, [location.search]);
 
   // Update filters when debounced search changes
   useEffect(() => {
@@ -127,7 +123,7 @@ const Jobs = () => {
         type: filters.type && filters.type !== 'all' ? filters.type : '',
         page,
       }),
-    enabled: isInitialized, // Enable query once component is initialized
+    enabled: true, // Always load jobs - don't wait for initialization
   });
 
   // Update allJobs when new data arrives

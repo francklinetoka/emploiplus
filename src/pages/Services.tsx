@@ -71,47 +71,11 @@ export default function Services() {
   return (
     <PWALayout notificationCount={0} messageCount={0}>
     <div className="min-h-screen bg-white pb-24 md:pb-0">
-      {/* Mobile Navigation Header - Sticky */}
-      <div className={`md:hidden sticky top-0 z-40 bg-white border-b border-slate-200 transition-transform duration-300 ${
-        isVisible ? "translate-y-0" : "-translate-y-full"
-      }`}>
-        <div className="w-full px-4 py-3">
-          {/* Mobile Navigation - Top Icons (4 per row) */}
-          <div className="grid grid-cols-4 gap-3">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() =>
-                    setActiveTab(
-                      item.id as
-                        | "optimization"
-                        | "tools"
-                        | "visual"
-                        | "digital"
-                    )
-                  }
-                  className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? "bg-blue-50 border border-blue-200"
-                      : "bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                  }`}
-                >
-                  <Icon className={`w-6 h-6 ${isActive ? "text-blue-600" : "text-slate-600"}`} />
-                  <span className={`font-medium text-xs text-center ${isActive ? "text-blue-900" : "text-slate-700"}`}>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
 
-      <div className="hidden md:block bg-slate-50 py-9">
+      <div className="bg-slate-50 py-9">
        
         <div className="w-full px-4">
-          {/* Navigation - Desktop only */}
+          {/* Navigation - Desktop and Mobile */}
           <div className="grid grid-cols-4 gap-3 mb-8">
             {navigation.map((item) => {
               const Icon = item.icon;
@@ -253,8 +217,8 @@ export default function Services() {
           </div>
           {/* End desktop grid */}
 
-          {/* Mobile Content Area */}
-          <div className="md:hidden space-y-6 pb-24">
+          {/* Mobile and Tablet Content Area */}
+          <div className="md:hidden block space-y-6 pb-24 px-4">
             {/* Header */}
             <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
               <h2 className="text-2xl font-bold text-slate-900 mb-2">

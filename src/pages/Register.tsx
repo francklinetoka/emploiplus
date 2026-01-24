@@ -116,7 +116,7 @@ const Register = () => {
       });
       setAcceptTerms(false);
       setLoading(false);
-      navigate('/connexion');
+      navigate('/connexion?from=register');
     }
   };
 
@@ -161,7 +161,7 @@ const Register = () => {
       });
       setAcceptTerms(false);
       setLoading(false);
-      navigate('/connexion');
+      navigate('/connexion?from=register');
     }
   };
 

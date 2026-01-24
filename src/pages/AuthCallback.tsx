@@ -52,9 +52,9 @@ export const AuthCallback = () => {
             setSyncInProgress(false);
           }
 
-          // 3. Redirection finale
+          // 3. Redirection finale - va vers le newsfeed
           toast.success('Connexion réussie !');
-          navigate('/dashboard', { replace: true });
+          navigate('/', { replace: true });
 
         } else {
           // Si après quelques secondes on n'a toujours pas de session

@@ -19,6 +19,15 @@ const LoginUser = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showVerificationReminder, setShowVerificationReminder] = useState(false);
+
+  // Check if we just came from registration
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('from') === 'register') {
+      setShowVerificationReminder(true);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     if (user) {
@@ -75,6 +84,17 @@ const LoginUser = () => {
             Connectez-vous à votre compte candidat ou entreprise
           </p>
         </div>
+
+        {/* Verification Reminder Message */}
+        {showVerificationReminder && (
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
+            <p className="text-sm font-semibold text-blue-900">✅ Inscription réussie!</p>
+            <p className="text-xs text-blue-800">
+              Un email de confirmation a été envoyé à votre adresse. 
+              Veuillez vérifier votre boîte mail (et spam) et cliquer sur le lien de confirmation avant de vous connecter.
+            </p>
+          </div>
+        )}
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
